@@ -78,7 +78,7 @@ abstract class BitmapTestBase {
         var img1 = Mat()
         var img2 = Mat()
         Utils.bitmapToMat(bmpimg1, img1)
-        Utils.bitmapToMat(bmpimg1, img2)
+        Utils.bitmapToMat(bmpimg2, img2)
 
         Imgproc.cvtColor(img1, img1, Imgproc.COLOR_RGBA2GRAY)
         Imgproc.cvtColor(img2, img2, Imgproc.COLOR_RGBA2GRAY)

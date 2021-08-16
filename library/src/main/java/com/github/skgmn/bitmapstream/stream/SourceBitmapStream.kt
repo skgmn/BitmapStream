@@ -112,7 +112,7 @@ internal class SourceBitmapStream(
                     }
                 }
             }
-            return postProcess(bitmap, params)
+            return setMutable(postProcess(bitmap, params) ?: return null, inputParameters.mutable)
         } finally {
             state?.setPhase(DecodingState.PHASE_COMLETE)
         }

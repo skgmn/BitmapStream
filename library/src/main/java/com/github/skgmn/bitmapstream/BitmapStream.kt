@@ -2,10 +2,15 @@ package com.github.skgmn.bitmapstream
 
 import android.content.res.AssetManager
 import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.Rect
+import android.graphics.*
+import android.widget.ImageView
 import androidx.annotation.DrawableRes
+import com.github.skgmn.bitmapstream.frame.*
+import com.github.skgmn.bitmapstream.frame.CenterFrameMethod
+import com.github.skgmn.bitmapstream.frame.CenterInsideFrameMethod
+import com.github.skgmn.bitmapstream.frame.FitGravityFrameMethod
+import com.github.skgmn.bitmapstream.frame.FitXYFrameMethod
+import com.github.skgmn.bitmapstream.frame.MatrixFrameMethod
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.source.AssetBitmapSource
 import com.github.skgmn.bitmapstream.source.ByteArrayBitmapSource
@@ -20,6 +25,7 @@ import com.github.skgmn.bitmapstream.stream.ScaleWidthBitmapStream
 import com.github.skgmn.bitmapstream.stream.SourceBitmapStream
 import java.io.File
 import java.io.InputStream
+import java.lang.IllegalArgumentException
 
 abstract class BitmapStream {
     abstract val width: Int
@@ -62,6 +68,23 @@ abstract class BitmapStream {
         return decode(buildInputParameters(false))
     }
 
+    fun frame(frameWidth: Int, frameHeight: Int, scaleType: ImageView.ScaleType): BitmapStream {
+        val frameMethod = when (scaleType) {
+            ImageView.ScaleType.MATRIX -> MatrixFrameMethod()
+            ImageView.ScaleType.FIT_XY -> FitXYFrameMethod()
+            ImageView.ScaleType.FIT_START ->
+                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_START)
+            ImageView.ScaleType.FIT_CENTER ->
+                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_CENTER)
+            ImageView.ScaleType.FIT_END ->
+                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_END)
+            ImageView.ScaleType.CENTER -> CenterFrameMethod()
+            ImageView.ScaleType.CENTER_INSIDE -> CenterInsideFrameMethod()
+            else -> throw IllegalArgumentException()
+        }
+        return FrameBitmapStream(this, frameWidth, frameHeight, frameMethod)
+    }
+
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
     internal abstract fun buildInputParameters(regional: Boolean): InputParameters
 
@@ -72,6 +95,21 @@ abstract class BitmapStream {
             val m = Matrix()
             m.setScale(params.postScaleX, params.postScaleY)
             Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, m, true)
+        }
+    }
+
+    internal fun setMutable(bitmap: Bitmap, mutable: Boolean): Bitmap {
+        if (bitmap.isMutable == mutable) {
+            return bitmap
+        }
+        if (mutable) {
+            val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
+            val paint = Paint(Paint.FILTER_BITMAP_FLAG)
+            val destRect = Rect(0, 0, bitmap.width, bitmap.height)
+            Canvas(newBitmap).drawBitmap(bitmap, null, destRect, paint)
+            return newBitmap
+        } else {
+            return Bitmap.createBitmap(bitmap)
         }
     }
 
