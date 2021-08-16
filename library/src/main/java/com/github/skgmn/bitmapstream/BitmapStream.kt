@@ -24,7 +24,7 @@ import java.io.InputStream
 abstract class BitmapStream {
     abstract val width: Int
     abstract val height: Int
-    abstract val mimeType: String
+    abstract val mimeType: String?
 
     open fun scaleTo(width: Int, height: Int): BitmapStream {
         return ScaleToBitmapStream(this, width, height)

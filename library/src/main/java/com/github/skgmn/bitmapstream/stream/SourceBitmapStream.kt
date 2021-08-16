@@ -14,13 +14,16 @@ internal class SourceBitmapStream(
     private val boundsDecodeLock = Any()
 
     @GuardedBy("boundsDecodeLock")
-    private var widthDecoded = -1
+    private var widthDecoded: Int = -1
+
     @GuardedBy("boundsDecodeLock")
-    private var heightDecoded = -1
+    private var heightDecoded: Int = -1
+
     @GuardedBy("boundsDecodeLock")
-    private var mimeTypeDecoded = ""
+    private var mimeTypeDecoded: String? = null
+
     @GuardedBy("boundsDecodeLock")
-    private var densityScale = 1f
+    private var densityScale: Float = 1f
 
     private val boundsDecoded
         @GuardedBy("boundsDecodeLock")
@@ -40,7 +43,7 @@ internal class SourceBitmapStream(
                 return heightDecoded
             }
         }
-    override val mimeType: String
+    override val mimeType: String?
         get() {
             synchronized(boundsDecodeLock) {
                 decodeBounds()

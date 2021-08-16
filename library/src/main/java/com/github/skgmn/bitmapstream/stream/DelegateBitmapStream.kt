@@ -11,7 +11,7 @@ internal abstract class DelegateBitmapStream(
         get() = other.width
     override val height: Int
         get() = other.height
-    override val mimeType: String
+    override val mimeType: String?
         get() = other.mimeType
 
     override fun buildInputParameters(regional: Boolean): InputParameters {
