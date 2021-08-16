@@ -54,10 +54,7 @@ class RegionTest : BitmapTestBase() {
                 12, 34, 56, 78
             )
 
-            val source = ResourceBitmapSource(
-                appContext.resources,
-                it
-            )
+            val source = ResourceBitmapSource(appContext.resources, it)
             val decoder = SourceBitmapStream(
                 source
             ).region(12, 34, 12 + 56, 34 + 78)
@@ -147,10 +144,7 @@ class RegionTest : BitmapTestBase() {
             scaledBitmap, 100, 110, 120, 130
         )
 
-        val source = ResourceBitmapSource(
-            appContext.resources,
-            R.drawable.nodpi_image
-        )
+        val source = ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image)
         val decoder = SourceBitmapStream(source)
             .scaleBy(2f, 3f)
             .region(100, 110, 100 + 120, 110 + 130)

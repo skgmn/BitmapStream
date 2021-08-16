@@ -9,8 +9,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.opencv.android.Utils
 import org.opencv.core.*
-import org.opencv.features2d.DescriptorMatcher
-import org.opencv.features2d.FastFeatureDetector
+import org.opencv.features2d.*
 import org.opencv.imgproc.Imgproc
 
 abstract class BitmapTestBase {
@@ -67,11 +66,12 @@ abstract class BitmapTestBase {
         }
     }
 
-    // Source code from https://github.com/torcellite/imageComparator/blob/master/imageComparator/src/com/torcellite/imageComparator/MainActivity.java
     protected fun assertSimilar(expected: Bitmap, actual: Bitmap) {
         if (expected.width != actual.width || expected.height != actual.height) {
             throw AssertionError("Bitmaps should have same size")
         }
+
+        // https://github.com/torcellite/imageComparator/blob/master/imageComparator/src/com/torcellite/imageComparator/MainActivity.java
 
         val bmpimg1 = Bitmap.createScaledBitmap(expected, 100, 100, true)
         val bmpimg2 = Bitmap.createScaledBitmap(actual, 100, 100, true)
@@ -107,43 +107,93 @@ abstract class BitmapTestBase {
         if (compare == 0.0) {
             // exact same
             return
-        } else if (compare <= 0 || compare >= 1500) {
+        } else if (compare < 0 || compare >= 1500) {
             throw AssertionError("Bitmaps are not same")
         }
 
         img1 = Mat()
         img2 = Mat()
-        Utils.bitmapToMat(bmpimg1, img1)
-        Utils.bitmapToMat(bmpimg2, img2)
-        Imgproc.cvtColor(img1, img1, Imgproc.COLOR_BGR2RGB)
-        Imgproc.cvtColor(img2, img2, Imgproc.COLOR_BGR2RGB)
-        val detector = FastFeatureDetector.create()
-        val matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING)
-
-        val keypoints = MatOfKeyPoint()
-        val dupKeypoints = MatOfKeyPoint()
-        val descriptors = Mat()
-        val dupDescriptors = Mat()
-        val matches = MatOfDMatch()
-
-        detector.detect(img1, keypoints)
-        detector.detect(img2, dupKeypoints)
-
-        detector.compute(img1, keypoints, descriptors)
-        detector.compute(img2, dupKeypoints, dupDescriptors)
-
-        matcher.match(descriptors, dupDescriptors, matches)
-
-        val matchesList = matches.toList()
-        val matchesFinal = matchesList.filter { it.distance <= MIN_DIST }
-
-        if (matchesFinal.size <= MIN_MATCHES) {
+        Utils.bitmapToMat(expected, img1)
+        Utils.bitmapToMat(actual, img2)
+        val mssim = getMssim(img1, img2)
+        if (mssim < 0.99) {
             throw AssertionError("Bitmaps are not similar")
         }
     }
 
+    // https://docs.opencv.org/2.4/doc/tutorials/gpu/gpu-basics-similarity/gpu-basics-similarity.html
+    private fun getMssim(i1: Mat, i2: Mat): Double {
+        val I1 = Mat()
+        val I2 = Mat()
+        i1.convertTo(I1, CvType.CV_32F)
+        i2.convertTo(I2, CvType.CV_32F)
+
+        val I2_2 = I2.mul(I2)
+        val I1_2 = I1.mul(I1)
+        val I1_I2 = I1.mul(I2)
+
+        val mu1 = Mat()
+        val mu2 = Mat()
+        Imgproc.GaussianBlur(I1, mu1, Size(11.0, 11.0), 1.5)
+        Imgproc.GaussianBlur(I2, mu2, Size(11.0, 11.0), 1.5)
+
+        val mu1_2 = mu1.mul(mu1)
+        val mu2_2 = mu2.mul(mu2)
+        val mu1_mu2 = mu1.mul(mu2)
+
+        var sigma1_2 = Mat()
+        var sigma2_2 = Mat()
+        var sigma12 = Mat()
+
+        Imgproc.GaussianBlur(I1_2, sigma1_2, Size(11.0, 11.0), 1.5)
+        sigma1_2 -= mu1_2
+
+        Imgproc.GaussianBlur(I2_2, sigma2_2, Size(11.0, 11.0), 1.5)
+        sigma2_2 -= mu2_2
+
+        Imgproc.GaussianBlur(I1_I2, sigma12, Size(11.0, 11.0), 1.5)
+        sigma12 -= mu1_mu2
+
+        var t1 = 2.0 * mu1_mu2 + C1
+        var t2 = 2.0 * sigma12 + C2
+        val t3 = t1.mul(t2)
+
+        t1 = mu1_2 + mu2_2 + C1
+        t2 = sigma1_2 + sigma2_2 + C2
+        t1 = t1.mul(t2)
+
+        val ssimMap = Mat()
+        Core.divide(t3, t1, ssimMap)
+
+        return Core.mean(ssimMap).`val`[0]
+    }
+
+    private operator fun Mat.minus(other: Mat): Mat {
+        val temp = Mat()
+        Core.subtract(this, other, temp)
+        return temp
+    }
+
+    private operator fun Double.times(other: Mat): Mat {
+        val temp = Mat()
+        Core.multiply(other, Scalar(this), temp)
+        return temp
+    }
+
+    private operator fun Mat.plus(other: Double): Mat {
+        val temp = Mat()
+        Core.add(this, Scalar(other), temp)
+        return temp
+    }
+
+    private operator fun Mat.plus(other: Mat): Mat {
+        val temp = Mat()
+        Core.add(this, other, temp)
+        return temp
+    }
+
     companion object {
-        private const val MIN_DIST = 10
-        private const val MIN_MATCHES = 750
+        private const val C1 = 6.5025
+        private const val C2 = 58.5225
     }
 }
