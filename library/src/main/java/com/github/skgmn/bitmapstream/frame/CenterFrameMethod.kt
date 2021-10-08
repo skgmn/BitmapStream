@@ -2,17 +2,18 @@ package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 
 internal class CenterFrameMethod : FrameMethod {
     override fun computeBounds(
-        bitmapStream: BitmapStream,
+        metadata: BitmapMetadata,
         frameWidth: Int,
         frameHeight: Int,
         outSrc: Rect?,
         outDest: Rect?
     ) {
-        val width = bitmapStream.width
-        val height = bitmapStream.height
+        val width = metadata.width
+        val height = metadata.height
         if (width > frameWidth) {
             if (outSrc != null) {
                 outSrc.left = (width - frameWidth) / 2

@@ -31,8 +31,8 @@ class RegionTest : BitmapTestBase() {
         )
         val decoder = SourceBitmapStream(source)
             .region(100, 110, 100 + 120, 110 + 130)
-        assertEquals(decoder.width, byFactory.width)
-        assertEquals(decoder.height, byFactory.height)
+        assertEquals(decoder.metadata.width, byFactory.width)
+        assertEquals(decoder.metadata.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)
@@ -84,8 +84,8 @@ class RegionTest : BitmapTestBase() {
         )
         val decoder = SourceBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
-        assertEquals(decoder.width, byFactoryFromByteArray.width)
-        assertEquals(decoder.height, byFactoryFromByteArray.height)
+        assertEquals(decoder.metadata.width, byFactoryFromByteArray.width)
+        assertEquals(decoder.metadata.height, byFactoryFromByteArray.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactoryFromByteArray)
@@ -107,8 +107,8 @@ class RegionTest : BitmapTestBase() {
         val source = FileBitmapSource(file)
         val decoder = SourceBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
-        assertEquals(decoder.width, byFactoryFromFile.width)
-        assertEquals(decoder.height, byFactoryFromFile.height)
+        assertEquals(decoder.metadata.width, byFactoryFromFile.width)
+        assertEquals(decoder.metadata.height, byFactoryFromFile.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactoryFromFile)
@@ -127,8 +127,8 @@ class RegionTest : BitmapTestBase() {
         val decoder = SourceBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
 
-        assertEquals(decoder.width, byFactory.width)
-        assertEquals(decoder.height, byFactory.height)
+        assertEquals(decoder.metadata.width, byFactory.width)
+        assertEquals(decoder.metadata.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)
@@ -148,8 +148,8 @@ class RegionTest : BitmapTestBase() {
         val decoder = SourceBitmapStream(source)
             .scaleBy(2f, 3f)
             .region(100, 110, 100 + 120, 110 + 130)
-        assertEquals(decoder.width, byFactory.width)
-        assertEquals(decoder.height, byFactory.height)
+        assertEquals(decoder.metadata.width, byFactory.width)
+        assertEquals(decoder.metadata.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)

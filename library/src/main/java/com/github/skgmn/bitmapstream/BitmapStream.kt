@@ -5,12 +5,12 @@ import android.content.res.Resources
 import android.graphics.*
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
-import com.github.skgmn.bitmapstream.frame.*
 import com.github.skgmn.bitmapstream.frame.CenterFrameMethod
 import com.github.skgmn.bitmapstream.frame.CenterInsideFrameMethod
 import com.github.skgmn.bitmapstream.frame.FitGravityFrameMethod
 import com.github.skgmn.bitmapstream.frame.FitXYFrameMethod
 import com.github.skgmn.bitmapstream.frame.MatrixFrameMethod
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.source.AssetBitmapSource
 import com.github.skgmn.bitmapstream.source.ByteArrayBitmapSource
@@ -28,9 +28,7 @@ import java.io.InputStream
 import java.lang.IllegalArgumentException
 
 abstract class BitmapStream {
-    abstract val width: Int
-    abstract val height: Int
-    abstract val mimeType: String?
+    abstract val metadata: BitmapMetadata
 
     open fun scaleTo(width: Int, height: Int): BitmapStream {
         return ScaleToBitmapStream(this, width, height)

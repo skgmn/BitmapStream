@@ -2,14 +2,20 @@ package com.github.skgmn.bitmapstream.stream
 
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.InputParameters
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
 internal class ScaleHeightBitmapStream(
     other: BitmapStream,
-    override val height: Int
+    private val height: Int
 ) : DelegateBitmapStream(other) {
-    override val width: Int by lazy {
-        AspectRatioCalculator.getWidth(other.width, other.height, height)
+    override val metadata = object : BitmapMetadata {
+        override val width by lazy {
+            AspectRatioCalculator.getWidth(other.metadata.width, other.metadata.height, height)
+        }
+        override val height: Int get() = this@ScaleHeightBitmapStream.height
+        override val mimeType: String? get() = other.metadata.mimeType
+        override val densityScale: Float get() = other.metadata.densityScale
     }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
@@ -29,7 +35,7 @@ internal class ScaleHeightBitmapStream(
     }
 
     override fun buildInputParameters(regional: Boolean): InputParameters {
-        val scale = height.toFloat() / other.height
+        val scale = height.toFloat() / other.metadata.height
         return other.buildInputParameters(regional).apply {
             scaleX *= scale
             scaleY *= scale

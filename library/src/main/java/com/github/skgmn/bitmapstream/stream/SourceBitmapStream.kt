@@ -1,88 +1,43 @@
 package com.github.skgmn.bitmapstream.stream
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.annotation.GuardedBy
+import com.github.skgmn.bitmapstream.*
 import com.github.skgmn.bitmapstream.BitmapSource
-import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.DecodingState
 import com.github.skgmn.bitmapstream.InputParameters
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.SourceBitmapMetadata
+import java.util.concurrent.atomic.AtomicReference
 
 internal class SourceBitmapStream(
     internal val source: BitmapSource
 ) : BitmapStream() {
-    private val boundsDecodeLock = Any()
-
-    @GuardedBy("boundsDecodeLock")
-    private var widthDecoded: Int = -1
-
-    @GuardedBy("boundsDecodeLock")
-    private var heightDecoded: Int = -1
-
-    @GuardedBy("boundsDecodeLock")
-    private var mimeTypeDecoded: String? = null
-
-    @GuardedBy("boundsDecodeLock")
-    private var densityScale: Float = 1f
-
-    private val boundsDecoded
-        @GuardedBy("boundsDecodeLock")
-        get() = widthDecoded != -1
-
-    override val width: Int
-        get() {
-            synchronized(boundsDecodeLock) {
-                decodeBounds()
-                return widthDecoded
-            }
-        }
-    override val height: Int
-        get() {
-            synchronized(boundsDecodeLock) {
-                decodeBounds()
-                return heightDecoded
-            }
-        }
-    override val mimeType: String?
-        get() {
-            synchronized(boundsDecodeLock) {
-                decodeBounds()
-                return mimeTypeDecoded
-            }
+    private val statefulMetadata = object : AtomicReference<BitmapMetadata>(), BitmapMetadata {
+        init {
+            set(LazyBitmapMetadata { lazy ->
+                SourceBitmapMetadata(source).also {
+                    compareAndSet(lazy, it)
+                }
+            })
         }
 
-    @GuardedBy("boundsDecodeLock")
-    private fun decodeBounds() {
-        if (boundsDecoded) {
-            return
-        }
-
-        val options = BitmapFactory.Options()
-        options.inJustDecodeBounds = true
-
-        source.decodeBitmap(options)
-        copyMetadata(options)
+        override val width: Int get() = get().width
+        override val height: Int get() = get().height
+        override val mimeType: String? get() = get().mimeType
+        override val densityScale: Float get() = get().densityScale
     }
 
-    @GuardedBy("boundsDecodeLock")
-    private fun copyMetadata(options: BitmapFactory.Options) {
-        widthDecoded = options.outWidth
-        heightDecoded = options.outHeight
-        mimeTypeDecoded = options.outMimeType
-        if (options.inScaled && options.inDensity != 0 && options.inTargetDensity != 0) {
-            densityScale = options.inTargetDensity.toFloat() / options.inDensity
-        }
-    }
+    override val metadata: BitmapMetadata = statefulMetadata
 
     override fun buildInputParameters(regional: Boolean): InputParameters {
         return if (regional && source.manualDensityScalingForRegional) {
-            synchronized(boundsDecodeLock) {
-                decodeBounds()
-                InputParameters(
-                    scaleX = densityScale,
-                    scaleY = densityScale
-                )
-            }
+            val densityScale = statefulMetadata.densityScale
+            InputParameters(
+                scaleX = densityScale,
+                scaleY = densityScale
+            )
         } else {
             InputParameters()
         }
@@ -94,9 +49,7 @@ internal class SourceBitmapStream(
 
         val params = inputParameters.buildDecodingParameters()
         if (params.region != null) {
-            synchronized(boundsDecodeLock) {
-                decodeBounds()
-            }
+            metadata.width
         }
 
         state?.setPhase(DecodingState.PHASE_BITMAP)
@@ -105,11 +58,11 @@ internal class SourceBitmapStream(
                 source.decodeBitmapRegion(params.region, params.options)
             } else {
                 source.decodeBitmap(params.options).also {
-                    synchronized(boundsDecodeLock) {
-                        if (!boundsDecoded) {
-                            copyMetadata(params.options)
-                        }
-                    }
+                    val newMetadata = DecodedBitmapMetadata(params.options)
+                    do {
+                        val current = statefulMetadata.get()
+                        if (current !is LazyBitmapMetadata) break
+                    } while (!statefulMetadata.compareAndSet(current, newMetadata))
                 }
             }
             return setMutable(postProcess(bitmap, params) ?: return null, inputParameters.mutable)

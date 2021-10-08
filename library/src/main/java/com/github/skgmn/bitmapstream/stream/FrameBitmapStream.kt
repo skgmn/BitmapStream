@@ -7,6 +7,7 @@ import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.InputParameters
 import com.github.skgmn.bitmapstream.frame.FrameMethod
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 import kotlin.math.roundToInt
 
@@ -16,10 +17,12 @@ internal class FrameBitmapStream(
     private val frameHeight: Int,
     private val frameMethod: FrameMethod
 ) : DelegateBitmapStream(other) {
-    override val width: Int
-        get() = frameWidth
-    override val height: Int
-        get() = frameHeight
+    override val metadata = object : BitmapMetadata {
+        override val width: Int get() = frameWidth
+        override val height: Int get() = frameHeight
+        override val mimeType: String? get() = other.metadata.mimeType
+        override val densityScale: Float get() = other.metadata.densityScale
+    }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return if (width == frameWidth && height == frameHeight) {
@@ -71,7 +74,7 @@ internal class FrameBitmapStream(
         val destRect = Rect()
         val targetWidth = (frameWidth * inputParameters.scaleX).roundToInt()
         val targetHeight = (frameHeight * inputParameters.scaleY).roundToInt()
-        frameMethod.computeBounds(other, targetWidth, targetHeight, srcRect, destRect)
+        frameMethod.computeBounds(other.metadata, targetWidth, targetHeight, srcRect, destRect)
 
         val scaleX = destRect.width().toFloat() / srcRect.width()
         val scaleY = destRect.height().toFloat() / srcRect.height()
@@ -104,7 +107,7 @@ internal class FrameBitmapStream(
 
         val srcBitmapStream =
             if (srcRect.left == 0 && srcRect.top == 0 &&
-                srcRect.width() == other.width && srcRect.height() == other.height
+                srcRect.width() == other.metadata.width && srcRect.height() == other.metadata.height
             ) {
                 other
             } else {

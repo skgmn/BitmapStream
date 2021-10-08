@@ -2,13 +2,21 @@ package com.github.skgmn.bitmapstream.stream
 
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.InputParameters
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
 internal class ScaleToBitmapStream(
     other: BitmapStream,
-    override val width: Int,
-    override val height: Int
+    private val width: Int,
+    private val height: Int
 ) : DelegateBitmapStream(other) {
+    override val metadata = object : BitmapMetadata {
+        override val width: Int get() = this@ScaleToBitmapStream.width
+        override val height: Int get() = this@ScaleToBitmapStream.height
+        override val mimeType: String? get() = other.metadata.mimeType
+        override val densityScale: Float get() = other.metadata.densityScale
+    }
+
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return if (this.width == width && this.height == height) {
             this
@@ -35,8 +43,8 @@ internal class ScaleToBitmapStream(
 
     override fun buildInputParameters(regional: Boolean): InputParameters {
         return other.buildInputParameters(regional).apply {
-            scaleX *= width.toFloat() / other.width
-            scaleY *= height.toFloat() / other.height
+            scaleX *= width.toFloat() / other.metadata.width
+            scaleY *= height.toFloat() / other.metadata.height
         }
     }
 }

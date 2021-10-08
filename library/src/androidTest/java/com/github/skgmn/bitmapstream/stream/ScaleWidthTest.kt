@@ -20,8 +20,8 @@ class ScaleWidthTest : BitmapTestBase() {
         val source = ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image)
         val decoder = SourceBitmapStream(source)
             .scaleWidth(400)
-        assertEquals(decoder.width, byFactory.width)
-        assertEquals(decoder.height, byFactory.height)
+        assertEquals(decoder.metadata.width, byFactory.width)
+        assertEquals(decoder.metadata.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)

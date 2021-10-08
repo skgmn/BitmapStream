@@ -2,18 +2,19 @@ package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
 internal class CenterInsideFrameMethod : FrameMethod {
     override fun computeBounds(
-        bitmapStream: BitmapStream,
+        metadata: BitmapMetadata,
         frameWidth: Int,
         frameHeight: Int,
         outSrc: Rect?,
         outDest: Rect?
     ) {
-        val width = bitmapStream.width
-        val height = bitmapStream.height
+        val width = metadata.width
+        val height = metadata.height
         outSrc?.set(0, 0, width, height)
         if (outDest != null) {
             if (width <= frameWidth && height <= frameHeight) {
