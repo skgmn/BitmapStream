@@ -1,22 +1,16 @@
 package com.github.skgmn.bitmapstream.stream
 
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.InputParameters
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
-import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
 internal class ScaleHeightBitmapStream(
     other: BitmapStream,
-    private val height: Int
-) : DelegateBitmapStream(other) {
-    override val metadata = object : BitmapMetadata {
-        override val width by lazy {
-            AspectRatioCalculator.getWidth(other.metadata.width, other.metadata.height, height)
-        }
-        override val height: Int get() = this@ScaleHeightBitmapStream.height
-        override val mimeType: String? get() = other.metadata.mimeType
-        override val densityScale: Float get() = other.metadata.densityScale
-    }
+    private val targetHeight: Double,
+    private val widthScale: Float
+) : ScaleBitmapStream(other) {
+    override val scaleX get() = scaleY * widthScale
+    override val scaleY get() = (targetHeight / other.exactHeight).toFloat()
+    override val exactWidth by lazy { other.exactWidth * scaleX }
+    override val exactHeight: Double get() = targetHeight
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return other.scaleTo(width, height)
@@ -27,18 +21,20 @@ internal class ScaleHeightBitmapStream(
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (this.height == height) {
+        return if (targetHeight == height.toDouble()) {
             this
-        } else {
+        } else if (widthScale == 1f) {
             other.scaleHeight(height)
+        } else {
+            ScaleHeightBitmapStream(other, height.toDouble(), widthScale)
         }
     }
 
-    override fun buildInputParameters(regional: Boolean): InputParameters {
-        val scale = height.toFloat() / other.metadata.height
-        return other.buildInputParameters(regional).apply {
-            scaleX *= scale
-            scaleY *= scale
+    override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
+        return if (scaleWidth == 1f && scaleHeight == 1f) {
+            this
+        } else {
+            ScaleHeightBitmapStream(other, targetHeight * scaleHeight, widthScale * scaleWidth)
         }
     }
 }

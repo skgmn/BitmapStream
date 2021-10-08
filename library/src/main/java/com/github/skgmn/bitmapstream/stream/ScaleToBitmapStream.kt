@@ -1,24 +1,19 @@
 package com.github.skgmn.bitmapstream.stream
 
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.InputParameters
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
-import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
 internal class ScaleToBitmapStream(
     other: BitmapStream,
-    private val width: Int,
-    private val height: Int
-) : DelegateBitmapStream(other) {
-    override val metadata = object : BitmapMetadata {
-        override val width: Int get() = this@ScaleToBitmapStream.width
-        override val height: Int get() = this@ScaleToBitmapStream.height
-        override val mimeType: String? get() = other.metadata.mimeType
-        override val densityScale: Float get() = other.metadata.densityScale
-    }
+    private val targetWidth: Double,
+    private val targetHeight: Double
+) : ScaleBitmapStream(other) {
+    override val scaleX get() = (targetWidth / other.metadata.width).toFloat()
+    override val scaleY get() = (targetHeight / other.metadata.height).toFloat()
+    override val exactWidth get() = targetWidth
+    override val exactHeight get() = targetHeight
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return if (this.width == width && this.height == height) {
+        return if (this.targetWidth == width.toDouble() && this.targetHeight == height.toDouble()) {
             this
         } else {
             other.scaleTo(width, height)
@@ -26,25 +21,28 @@ internal class ScaleToBitmapStream(
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return if (this.width == width) {
+        return if (targetWidth == width.toDouble()) {
             this
         } else {
-            other.scaleTo(width, AspectRatioCalculator.getHeight(this.width, this.height, width))
+            val scale = width / targetWidth
+            ScaleToBitmapStream(other, width.toDouble(), targetHeight * scale)
         }
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (this.height == height) {
+        return if (targetHeight == height.toDouble()) {
             this
         } else {
-            other.scaleTo(AspectRatioCalculator.getWidth(this.width, this.height, height), height)
+            val scale = height / targetHeight
+            ScaleToBitmapStream(other, targetWidth * scale, height.toDouble())
         }
     }
 
-    override fun buildInputParameters(regional: Boolean): InputParameters {
-        return other.buildInputParameters(regional).apply {
-            scaleX *= width.toFloat() / other.metadata.width
-            scaleY *= height.toFloat() / other.metadata.height
+    override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
+        return if (scaleWidth == 1f && scaleHeight == 1f) {
+            this
+        } else {
+            ScaleToBitmapStream(other, targetWidth * scaleWidth, targetHeight * scaleHeight)
         }
     }
 }

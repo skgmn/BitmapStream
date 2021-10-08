@@ -5,41 +5,29 @@ import android.content.res.Resources
 import android.graphics.*
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
-import com.github.skgmn.bitmapstream.frame.CenterFrameMethod
-import com.github.skgmn.bitmapstream.frame.CenterInsideFrameMethod
-import com.github.skgmn.bitmapstream.frame.FitGravityFrameMethod
-import com.github.skgmn.bitmapstream.frame.FitXYFrameMethod
-import com.github.skgmn.bitmapstream.frame.MatrixFrameMethod
+import com.github.skgmn.bitmapstream.frame.*
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.*
-import com.github.skgmn.bitmapstream.source.AssetBitmapSource
-import com.github.skgmn.bitmapstream.source.ByteArrayBitmapSource
-import com.github.skgmn.bitmapstream.source.FileBitmapSource
-import com.github.skgmn.bitmapstream.source.InputStreamBitmapSource
-import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
 import com.github.skgmn.bitmapstream.stream.*
-import com.github.skgmn.bitmapstream.stream.ScaleByBitmapStream
-import com.github.skgmn.bitmapstream.stream.ScaleHeightBitmapStream
-import com.github.skgmn.bitmapstream.stream.ScaleToBitmapStream
-import com.github.skgmn.bitmapstream.stream.ScaleWidthBitmapStream
-import com.github.skgmn.bitmapstream.stream.SourceBitmapStream
 import java.io.File
 import java.io.InputStream
-import java.lang.IllegalArgumentException
 
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
 
+    internal open val exactWidth: Double get() = metadata.width.toDouble()
+    internal open val exactHeight: Double get() = metadata.height.toDouble()
+
     open fun scaleTo(width: Int, height: Int): BitmapStream {
-        return ScaleToBitmapStream(this, width, height)
+        return ScaleToBitmapStream(this, width.toDouble(), height.toDouble())
     }
 
     open fun scaleWidth(width: Int): BitmapStream {
-        return ScaleWidthBitmapStream(this, width)
+        return ScaleWidthBitmapStream(this, width.toDouble(), 1f)
     }
 
     open fun scaleHeight(height: Int): BitmapStream {
-        return ScaleHeightBitmapStream(this, height)
+        return ScaleHeightBitmapStream(this, height.toDouble(), 1f)
     }
 
     open fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {

@@ -1,8 +1,8 @@
 package com.github.skgmn.bitmapstream.stream
 
 import android.graphics.Bitmap
-import com.github.skgmn.bitmapstream.*
 import com.github.skgmn.bitmapstream.BitmapSource
+import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.DecodingState
 import com.github.skgmn.bitmapstream.InputParameters
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
