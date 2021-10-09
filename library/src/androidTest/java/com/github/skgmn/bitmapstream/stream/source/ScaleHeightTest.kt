@@ -1,4 +1,4 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.BitmapFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -24,7 +24,7 @@ abstract class BitmapStream {
     abstract fun scaleHeight(height: Int): BitmapStream
     abstract fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream
     abstract fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream
-    abstract fun mutable(mutable: Boolean): BitmapStream
+    abstract fun mutable(mutable: Boolean?): BitmapStream
     abstract fun frame(
         frameWidth: Int,
         frameHeight: Int,

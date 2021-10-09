@@ -41,7 +41,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         return RegionBitmapStream(this, left, top, right, bottom)
     }
 
-    override fun mutable(mutable: Boolean): BitmapStream {
+    override fun mutable(mutable: Boolean?): BitmapStream {
         return MutableBitmapStream(this, mutable)
     }
 
