@@ -2,7 +2,10 @@ package com.github.skgmn.bitmapstream
 
 import android.content.res.AssetManager
 import android.content.res.Resources
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import com.github.skgmn.bitmapstream.frame.*
@@ -11,6 +14,7 @@ import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.*
 import java.io.File
 import java.io.InputStream
+import kotlin.math.roundToInt
 
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
@@ -80,9 +84,21 @@ abstract class BitmapStream {
         return if (bitmap == null || params.postScaleX == 1f && params.postScaleY == 1f) {
             bitmap
         } else {
-            val m = Matrix()
-            m.setScale(params.postScaleX, params.postScaleY)
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, m, true)
+            val newWidth = (bitmap.width * params.postScaleX).roundToInt()
+            val newHeight = (bitmap.height * params.postScaleY).roundToInt()
+            Bitmap.createBitmap(newWidth, newHeight, bitmap.config).also {
+                val c = Canvas(it)
+                c.drawBitmap(
+                    bitmap,
+                    null,
+                    Rect(0, 0, newWidth, newHeight),
+                    Paint(Paint.FILTER_BITMAP_FLAG)
+                )
+                it.density = bitmap.density
+                it.setHasAlpha(bitmap.hasAlpha())
+                it.isPremultiplied = bitmap.isPremultiplied
+                bitmap.recycle()
+            }
         }
     }
 

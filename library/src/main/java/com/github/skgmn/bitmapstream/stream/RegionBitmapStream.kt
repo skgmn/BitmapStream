@@ -43,10 +43,13 @@ internal class RegionBitmapStream(
 
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
         return other.buildInputParameters(features).apply {
+            val width = metadata.width
+            val height = metadata.height
+
             val left = (region?.left ?: 0) + (left / scaleX).roundToInt()
             val top = (region?.top ?: 0) + (top / scaleY).roundToInt()
-            val right = left + (metadata.width / scaleX).roundToInt()
-            val bottom = top + (metadata.height / scaleY).roundToInt()
+            val right = left + (width / scaleX).roundToInt()
+            val bottom = top + (height / scaleY).roundToInt()
 
             val scaledRegion = region ?: Rect().also { region = it }
             scaledRegion.left = left
@@ -54,8 +57,8 @@ internal class RegionBitmapStream(
             scaledRegion.right = right
             scaledRegion.bottom = bottom
 
-            scaleX = metadata.width.toFloat() / scaledRegion.width()
-            scaleY = metadata.height.toFloat() / scaledRegion.height()
+            scaleX = width.toFloat() / scaledRegion.width()
+            scaleY = height.toFloat() / scaledRegion.height()
         }
     }
 }
