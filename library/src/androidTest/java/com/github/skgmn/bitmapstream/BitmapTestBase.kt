@@ -9,7 +9,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.opencv.android.Utils
 import org.opencv.core.*
-import org.opencv.features2d.*
 import org.opencv.imgproc.Imgproc
 
 abstract class BitmapTestBase {
@@ -71,12 +70,21 @@ abstract class BitmapTestBase {
             throw AssertionError("Bitmaps should have same size")
         }
 
+        var img1 = Mat()
+        var img2 = Mat()
+        Utils.bitmapToMat(expected, img1)
+        Utils.bitmapToMat(actual, img2)
+        val mssim = getMssim(img1, img2)
+        if (mssim >= 0.985) {
+            return
+        }
+
         // https://github.com/torcellite/imageComparator/blob/master/imageComparator/src/com/torcellite/imageComparator/MainActivity.java
 
         val bmpimg1 = Bitmap.createScaledBitmap(expected, 100, 100, true)
         val bmpimg2 = Bitmap.createScaledBitmap(actual, 100, 100, true)
-        var img1 = Mat()
-        var img2 = Mat()
+        img1 = Mat()
+        img2 = Mat()
         Utils.bitmapToMat(bmpimg1, img1)
         Utils.bitmapToMat(bmpimg2, img2)
 
@@ -104,19 +112,10 @@ abstract class BitmapTestBase {
         hist2.convertTo(hist2, CvType.CV_32F)
 
         val compare = Imgproc.compareHist(hist1, hist2, Imgproc.CV_COMP_CHISQR)
-        if (compare == 0.0) {
+        if (compare >= 0 && compare < 1500) {
             // exact same
             return
-        } else if (compare < 0 || compare >= 1500) {
-            throw AssertionError("Bitmaps are not same")
-        }
-
-        img1 = Mat()
-        img2 = Mat()
-        Utils.bitmapToMat(expected, img1)
-        Utils.bitmapToMat(actual, img2)
-        val mssim = getMssim(img1, img2)
-        if (mssim < 0.99) {
+        } else {
             throw AssertionError("Bitmaps are not similar")
         }
     }

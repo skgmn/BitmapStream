@@ -6,7 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
 import com.github.skgmn.bitmapstream.test.R
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -82,7 +82,7 @@ class ThreeOpsTest : BitmapTestBase() {
 
     @Test
     fun scaleToScaleWidthScaleBy() {
-        val scaledTo = decodeBitmapScaleTo(67, 133) {
+        val scaledTo = decodeBitmapScaleTo(67, 132) {
             BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image, it)
         }
         val byFactory = scaledTo
@@ -96,7 +96,7 @@ class ThreeOpsTest : BitmapTestBase() {
             .scaleWidth(133)
             .scaleBy(0.5f, 0.5f)
         assertEquals(67, decoder.metadata.width)
-        assertEquals(133, decoder.metadata.height)
+        assertEquals(132, decoder.metadata.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)
