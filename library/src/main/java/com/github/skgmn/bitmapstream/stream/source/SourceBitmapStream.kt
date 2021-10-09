@@ -1,9 +1,7 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
-import android.widget.ImageView
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.frame.*
 
 internal abstract class SourceBitmapStream : BitmapStream() {
     internal open val features = object : StreamFeatures {
@@ -43,27 +41,6 @@ internal abstract class SourceBitmapStream : BitmapStream() {
 
     override fun mutable(mutable: Boolean?): BitmapStream {
         return MutableBitmapStream(this, mutable)
-    }
-
-    override fun frame(
-        frameWidth: Int,
-        frameHeight: Int,
-        scaleType: ImageView.ScaleType
-    ): BitmapStream {
-        val frameMethod = when (scaleType) {
-            ImageView.ScaleType.MATRIX -> MatrixFrameMethod()
-            ImageView.ScaleType.FIT_XY -> FitXYFrameMethod()
-            ImageView.ScaleType.FIT_START ->
-                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_START)
-            ImageView.ScaleType.FIT_CENTER ->
-                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_CENTER)
-            ImageView.ScaleType.FIT_END ->
-                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_END)
-            ImageView.ScaleType.CENTER -> CenterFrameMethod()
-            ImageView.ScaleType.CENTER_INSIDE -> CenterInsideFrameMethod()
-            else -> throw IllegalArgumentException()
-        }
-        return FrameBitmapStream(this, frameWidth, frameHeight, frameMethod)
     }
 
     override fun decode(): Bitmap? {

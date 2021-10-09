@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.RectF
-import android.widget.ImageView
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
@@ -26,10 +25,10 @@ internal class CanvasBitmapStream(
     }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        if (width == metadata.width && height == metadata.height) {
-            return this
+        return if (width == metadata.width && height == metadata.height) {
+            this
         } else {
-            return CanvasBitmapStream(
+            CanvasBitmapStream(
                 canvasWidth,
                 canvasHeight,
                 region,
@@ -97,21 +96,13 @@ internal class CanvasBitmapStream(
     }
 
     override fun mutable(mutable: Boolean?): BitmapStream {
-        if (this.mutable == mutable) {
-            return this
+        return if (this.mutable == mutable) {
+            this
         } else {
-            return CanvasBitmapStream(
+            CanvasBitmapStream(
                 canvasWidth, canvasHeight, region, scaleX, scaleY, mutable, drawer
             )
         }
-    }
-
-    override fun frame(
-        frameWidth: Int,
-        frameHeight: Int,
-        scaleType: ImageView.ScaleType
-    ): BitmapStream {
-        TODO("Not yet implemented")
     }
 
     override fun decode(): Bitmap? {

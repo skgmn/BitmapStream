@@ -6,10 +6,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.annotation.DrawableRes
+import com.github.skgmn.bitmapstream.frame.*
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.factory.*
+import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
+import com.github.skgmn.bitmapstream.stream.canvas.drawStream
 import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
 import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import java.io.File
@@ -25,16 +29,43 @@ abstract class BitmapStream {
     abstract fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream
     abstract fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream
     abstract fun mutable(mutable: Boolean?): BitmapStream
-    abstract fun frame(
-        frameWidth: Int,
-        frameHeight: Int,
-        scaleType: ImageView.ScaleType
-    ): BitmapStream
 
     abstract fun decode(): Bitmap?
 
     fun region(bounds: Rect): BitmapStream {
         return region(bounds.left, bounds.top, bounds.right, bounds.bottom)
+    }
+
+    fun frame(
+        frameWidth: Int,
+        frameHeight: Int,
+        scaleType: ImageView.ScaleType,
+        background: Drawable?
+    ): BitmapStream {
+        val frameMethod = when (scaleType) {
+            ImageView.ScaleType.MATRIX -> MatrixFrameMethod()
+            ImageView.ScaleType.FIT_XY -> FitXYFrameMethod()
+            ImageView.ScaleType.FIT_START ->
+                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_START)
+            ImageView.ScaleType.FIT_CENTER ->
+                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_CENTER)
+            ImageView.ScaleType.FIT_END ->
+                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_END)
+            ImageView.ScaleType.CENTER -> CenterFrameMethod()
+            ImageView.ScaleType.CENTER_INSIDE -> CenterInsideFrameMethod()
+            ImageView.ScaleType.CENTER_CROP -> CenterCropFrameMethod()
+            else -> throw IllegalArgumentException()
+        }
+        return CanvasBitmapStream(frameWidth, frameHeight) {
+            background?.let {
+                it.setBounds(0, 0, frameWidth, frameHeight)
+                it.draw(this)
+            }
+            val srcRect = Rect()
+            val destRect = Rect()
+            frameMethod.computeBounds(metadata, frameWidth, frameHeight, srcRect, destRect)
+            drawStream(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
+        }
     }
 
     internal fun postProcess(bitmap: Bitmap?, params: DecodingParameters): Bitmap? {
