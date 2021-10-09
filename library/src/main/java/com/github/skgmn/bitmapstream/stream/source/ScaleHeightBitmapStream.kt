@@ -1,9 +1,9 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
 
 internal class ScaleHeightBitmapStream(
-    other: BitmapStream,
+    other: SourceBitmapStream,
     private val targetHeight: Double,
     private val widthScale: Float
 ) : ScaleBitmapStream(other) {

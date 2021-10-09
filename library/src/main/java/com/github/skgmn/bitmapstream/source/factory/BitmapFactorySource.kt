@@ -1,11 +1,14 @@
-package com.github.skgmn.bitmapstream
+package com.github.skgmn.bitmapstream.source.factory
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import com.github.skgmn.bitmapstream.DecodingState
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.stream.source.InputParameters
+import com.github.skgmn.bitmapstream.stream.source.StreamFeatures
 
-internal abstract class BitmapSource {
+internal abstract class BitmapFactorySource {
     abstract fun decodeBitmap(options: BitmapFactory.Options): Bitmap?
     abstract fun decodeBitmapRegion(region: Rect, options: BitmapFactory.Options): Bitmap?
 

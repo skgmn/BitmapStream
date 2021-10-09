@@ -1,11 +1,9 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.InputParameters
-import com.github.skgmn.bitmapstream.StreamFeatures
 
 internal class MutableBitmapStream(
-    other: BitmapStream,
+    other: SourceBitmapStream,
     private val mutable: Boolean
 ) : DelegateBitmapStream(other) {
     override fun mutable(mutable: Boolean): BitmapStream {

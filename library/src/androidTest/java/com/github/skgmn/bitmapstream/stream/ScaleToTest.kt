@@ -4,7 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
-import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
+import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
+import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,7 +29,7 @@ class ScaleToTest : BitmapTestBase() {
         )
 
         val source = ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image)
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleTo(targetWidth, targetHeight)
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)

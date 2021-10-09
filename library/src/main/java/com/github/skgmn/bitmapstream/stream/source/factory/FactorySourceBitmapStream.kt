@@ -1,20 +1,24 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source.factory
 
 import android.graphics.Bitmap
-import com.github.skgmn.bitmapstream.*
+import com.github.skgmn.bitmapstream.DecodingState
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.FactorySourceBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
-import com.github.skgmn.bitmapstream.metadata.SourceBitmapMetadata
+import com.github.skgmn.bitmapstream.source.factory.BitmapFactorySource
+import com.github.skgmn.bitmapstream.stream.source.InputParameters
+import com.github.skgmn.bitmapstream.stream.source.SourceBitmapStream
+import com.github.skgmn.bitmapstream.stream.source.StreamFeatures
 import java.util.concurrent.atomic.AtomicReference
 
-internal class SourceBitmapStream(
-    internal val source: BitmapSource
-) : BitmapStream() {
+internal class FactorySourceBitmapStream(
+    private val source: BitmapFactorySource
+) : SourceBitmapStream() {
     private val statefulMetadata = object : AtomicReference<BitmapMetadata>(), BitmapMetadata {
         init {
             set(LazyBitmapMetadata { lazy ->
-                SourceBitmapMetadata(source).also {
+                FactorySourceBitmapMetadata(source).also {
                     compareAndSet(lazy, it)
                 }
             })
@@ -26,12 +30,7 @@ internal class SourceBitmapStream(
         override val densityScale: Float get() = get().densityScale
     }
 
-    override val features = object : StreamFeatures {
-        override val regional: Boolean
-            get() = false
-    }
-
-    override val metadata: BitmapMetadata = statefulMetadata
+    override val metadata: BitmapMetadata get() = statefulMetadata
 
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
         return source.generateInputParameters(features, metadata)

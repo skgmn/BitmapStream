@@ -1,19 +1,18 @@
-package com.github.skgmn.bitmapstream.source
+package com.github.skgmn.bitmapstream.source.factory
 
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.BitmapSource
-import com.github.skgmn.bitmapstream.InputParameters
-import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.stream.source.InputParameters
+import com.github.skgmn.bitmapstream.stream.source.StreamFeatures
 
 internal class ResourceBitmapSource(
     private val res: Resources,
     private val id: Int
-) : BitmapSource() {
+) : BitmapFactorySource() {
     override fun decodeBitmap(options: BitmapFactory.Options): Bitmap? {
         return BitmapFactory.decodeResource(res, id, options)
     }

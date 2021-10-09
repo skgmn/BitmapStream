@@ -1,15 +1,14 @@
-package com.github.skgmn.bitmapstream.source
+package com.github.skgmn.bitmapstream.source.factory
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.BitmapSource
 import com.github.skgmn.bitmapstream.DecodingState
 import com.github.skgmn.bytestream.util.RewindableInputStream
 import java.io.InputStream
 
-internal class InputStreamBitmapSource(inputStream: InputStream) : BitmapSource() {
+internal class InputStreamBitmapSource(inputStream: InputStream) : BitmapFactorySource() {
     private val rewindableInputStream = RewindableInputStream(inputStream)
 
     override fun decodeBitmap(options: BitmapFactory.Options): Bitmap? {

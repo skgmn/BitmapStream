@@ -1,13 +1,11 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.InputParameters
-import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
 internal class ScaleByBitmapStream(
-    other: BitmapStream,
+    other: SourceBitmapStream,
     private val scaleX: Float,
     private val scaleY: Float
 ) : DelegateBitmapStream(other) {

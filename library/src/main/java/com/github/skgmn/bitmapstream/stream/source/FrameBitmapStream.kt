@@ -1,18 +1,17 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.InputParameters
 import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 import kotlin.math.roundToInt
 
 internal class FrameBitmapStream(
-    other: BitmapStream,
+    other: SourceBitmapStream,
     private val frameWidth: Int,
     private val frameHeight: Int,
     private val frameMethod: FrameMethod

@@ -1,14 +1,12 @@
-package com.github.skgmn.bitmapstream.stream
+package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.InputParameters
-import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
 internal class RegionBitmapStream(
-    other: BitmapStream,
+    other: SourceBitmapStream,
     private val left: Int,
     private val top: Int,
     private val right: Int,

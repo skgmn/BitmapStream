@@ -1,11 +1,10 @@
-package com.github.skgmn.bitmapstream.source
+package com.github.skgmn.bitmapstream.source.factory
 
 import android.graphics.*
-import com.github.skgmn.bitmapstream.BitmapSource
 
 internal class InMemoryBitmapSource(
     private val bitmap: Bitmap
-): BitmapSource() {
+): BitmapFactorySource() {
     override fun decodeBitmap(options: BitmapFactory.Options): Bitmap? {
         val sampleSize = options.inSampleSize
         val bitmapWidth = Math.ceil(bitmap.width / sampleSize.toDouble()).toInt()

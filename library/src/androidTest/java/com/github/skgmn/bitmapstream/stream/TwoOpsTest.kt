@@ -4,7 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
-import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
+import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
+import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -23,7 +24,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleTo(300, 400)
             .scaleTo(100, 200)
         assertEquals(100, decoder.metadata.width)
@@ -44,7 +45,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleTo(100, 200)
             .scaleBy(1.1f, 1.2f)
         assertEquals(110, decoder.metadata.width)
@@ -66,7 +67,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleTo(300, 400)
             .region(100, 110, 100 + 120, 110 + 130)
         assertEquals(120, decoder.metadata.width)
@@ -87,7 +88,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleWidth(100)
             .scaleWidth(200)
         assertEquals(byFactory.width, decoder.metadata.width)
@@ -108,7 +109,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleWidth(100)
             .scaleHeight(200)
         assertEquals(byFactory.width, decoder.metadata.width)
@@ -129,7 +130,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleHeight(100)
             .scaleWidth(200)
         assertEquals(byFactory.width, decoder.metadata.width)
@@ -150,7 +151,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleHeight(100)
             .scaleHeight(200)
         assertEquals(byFactory.width, decoder.metadata.width)
@@ -171,7 +172,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleBy(0.7f, 0.8f)
             .scaleTo(200, 210)
         assertEquals(200, decoder.metadata.width)
@@ -192,7 +193,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleBy(0.5f, 0.6f)
             .scaleBy(0.7f, 0.8f)
         assertEquals(byFactory.width, decoder.metadata.width)
@@ -214,7 +215,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .scaleBy(0.7f, 0.8f)
             .region(100, 110, 100 + 120, 110 + 130)
         assertEquals(120, decoder.metadata.width)
@@ -235,7 +236,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .region(100, 110, 100 + 120, 110 + 130)
             .scaleTo(140, 150)
         assertEquals(140, decoder.metadata.width)
@@ -256,7 +257,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .region(100, 110, 100 + 120, 110 + 130)
             .scaleBy(0.9f, 0.8f)
         assertEquals(byFactory.width, decoder.metadata.width)
@@ -277,7 +278,7 @@ class TwoOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = SourceBitmapStream(source)
+        val decoder = FactorySourceBitmapStream(source)
             .region(100, 110, 100 + 120, 110 + 130)
             .region(10, 20, 10 + 30, 20 + 40)
         assertEquals(30, decoder.metadata.width)
