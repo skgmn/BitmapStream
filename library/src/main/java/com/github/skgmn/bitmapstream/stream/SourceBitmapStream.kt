@@ -1,10 +1,7 @@
 package com.github.skgmn.bitmapstream.stream
 
 import android.graphics.Bitmap
-import com.github.skgmn.bitmapstream.BitmapSource
-import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.DecodingState
-import com.github.skgmn.bitmapstream.InputParameters
+import com.github.skgmn.bitmapstream.*
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
@@ -29,18 +26,15 @@ internal class SourceBitmapStream(
         override val densityScale: Float get() = get().densityScale
     }
 
+    override val features = object : StreamFeatures {
+        override val regional: Boolean
+            get() = false
+    }
+
     override val metadata: BitmapMetadata = statefulMetadata
 
-    override fun buildInputParameters(regional: Boolean): InputParameters {
-        return if (regional && source.manualDensityScalingForRegional) {
-            val densityScale = statefulMetadata.densityScale
-            InputParameters(
-                scaleX = densityScale,
-                scaleY = densityScale
-            )
-        } else {
-            InputParameters()
-        }
+    override fun buildInputParameters(features: StreamFeatures): InputParameters {
+        return source.generateInputParameters(features, metadata)
     }
 
     override fun decode(inputParameters: InputParameters): Bitmap? {

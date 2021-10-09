@@ -15,6 +15,8 @@ import java.io.InputStream
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
 
+    internal abstract val features: StreamFeatures
+
     internal open val exactWidth: Double get() = metadata.width.toDouble()
     internal open val exactHeight: Double get() = metadata.height.toDouble()
 
@@ -51,7 +53,7 @@ abstract class BitmapStream {
     }
 
     fun decode(): Bitmap? {
-        return decode(buildInputParameters(false))
+        return decode(buildInputParameters(features))
     }
 
     fun frame(frameWidth: Int, frameHeight: Int, scaleType: ImageView.ScaleType): BitmapStream {
@@ -72,7 +74,7 @@ abstract class BitmapStream {
     }
 
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
-    internal abstract fun buildInputParameters(regional: Boolean): InputParameters
+    internal abstract fun buildInputParameters(features: StreamFeatures): InputParameters
 
     internal fun postProcess(bitmap: Bitmap?, params: DecodingParameters): Bitmap? {
         return if (bitmap == null || params.postScaleX == 1f && params.postScaleY == 1f) {

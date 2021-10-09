@@ -2,6 +2,7 @@ package com.github.skgmn.bitmapstream.stream
 
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.InputParameters
+import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
@@ -35,8 +36,8 @@ internal class ScaleByBitmapStream(
         }
     }
 
-    override fun buildInputParameters(regional: Boolean): InputParameters {
-        return other.buildInputParameters(regional).apply {
+    override fun buildInputParameters(features: StreamFeatures): InputParameters {
+        return other.buildInputParameters(features).apply {
             scaleX *= this@ScaleByBitmapStream.scaleX
             scaleY *= this@ScaleByBitmapStream.scaleY
         }
