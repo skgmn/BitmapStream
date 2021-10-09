@@ -68,6 +68,10 @@ abstract class BitmapStream {
         }
     }
 
+    internal open fun downsampleOnly(): BitmapStream {
+        return this
+    }
+
     internal fun postProcess(bitmap: Bitmap?, params: DecodingParameters): Bitmap? {
         return if (bitmap == null || params.postScaleX == 1f && params.postScaleY == 1f) {
             bitmap

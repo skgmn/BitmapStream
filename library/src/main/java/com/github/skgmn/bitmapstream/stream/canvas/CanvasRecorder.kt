@@ -67,7 +67,7 @@ internal class CanvasRecorder internal constructor(
     }
 
     internal fun drawStream(stream: BitmapStream, dst: RectF, paint: Paint?) {
-        records += drawer@ {
+        records += drawer@{
             val bounds = RectF(it)
             if (bounds.intersect(dst)) {
                 val scaleX = dst.width() / stream.metadata.width
@@ -76,12 +76,17 @@ internal class CanvasRecorder internal constructor(
                 val top = (bounds.top - dst.top) / scaleY
                 val right = left + bounds.width() / scaleX
                 val bottom = top + bounds.height() / scaleY
-                val bitmap = stream.region(
-                    left.roundToInt(),
-                    top.roundToInt(),
-                    right.roundToInt(),
-                    bottom.roundToInt()
-                ).decode() ?: return@drawer
+                val bitmap = stream
+                    .region(
+                        left.roundToInt(),
+                        top.roundToInt(),
+                        right.roundToInt(),
+                        bottom.roundToInt()
+                    )
+                    .scaleBy(scaleX, scaleY)
+                    .downsampleOnly()
+                    .decode()
+                    ?: return@drawer
                 drawBitmap(bitmap, null, bounds, paint)
             }
         }

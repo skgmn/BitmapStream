@@ -58,4 +58,35 @@ class FrameTest : BitmapTestBase() {
         }
         assertSimilar(byFactory, byDecoder)
     }
+
+    @Test
+    fun downsample() {
+        val res = appContext.resources
+        val source = BitmapFactory.decodeResource(res, R.drawable.nodpi_image)
+        val frame = Bitmap.createBitmap(144, 144, Bitmap.Config.ARGB_8888)
+        Canvas(frame).run {
+            drawColor(Color.RED)
+            drawBitmap(
+                source,
+                Rect(120, 0, 480, 360),
+                Rect(0, 0, 144, 144),
+                Paint(Paint.FILTER_BITMAP_FLAG)
+            )
+        }
+        val byFactory = frame
+
+        val bitmapSource = spyk(ResourceBitmapSource(res, R.drawable.nodpi_image))
+        val sourceStream = FactorySourceBitmapStream(bitmapSource)
+        val frameStream =
+            sourceStream.frame(144, 144, ImageView.ScaleType.CENTER_CROP, ColorDrawable(Color.RED))
+        val byDecoder = assertNotNull(frameStream.decode())
+
+        verify {
+            bitmapSource.decodeBitmapRegion(
+                Rect(120, 0, 480, 360),
+                match { it.inSampleSize == 2 }
+            )
+        }
+        assertSimilar(byFactory, byDecoder)
+    }
 }

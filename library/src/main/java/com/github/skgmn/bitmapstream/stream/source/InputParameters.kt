@@ -7,7 +7,8 @@ internal class InputParameters(
     var scaleX: Float = 1f,
     var scaleY: Float = 1f,
     var region: Rect? = null,
-    var mutable: Boolean = false
+    var mutable: Boolean = false,
+    var downsampleOnly: Boolean = false
 ) {
     fun buildDecodingParameters(): DecodingParameters {
         val options = BitmapFactory.Options()
@@ -26,8 +27,8 @@ internal class InputParameters(
 
         return DecodingParameters(
             options = options,
-            postScaleX = sx,
-            postScaleY = sy,
+            postScaleX = if (downsampleOnly) 1f else sx,
+            postScaleY = if (downsampleOnly) 1f else sy,
             region = region
         )
     }

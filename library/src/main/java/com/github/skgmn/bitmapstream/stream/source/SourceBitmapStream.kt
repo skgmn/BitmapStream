@@ -5,8 +5,7 @@ import com.github.skgmn.bitmapstream.BitmapStream
 
 internal abstract class SourceBitmapStream : BitmapStream() {
     internal open val features = object : StreamFeatures {
-        override val regional: Boolean
-            get() = false
+        override val regional get() = false
     }
 
     internal open val exactWidth: Double get() = metadata.width.toDouble()
@@ -41,6 +40,10 @@ internal abstract class SourceBitmapStream : BitmapStream() {
 
     override fun mutable(mutable: Boolean?): BitmapStream {
         return MutableBitmapStream(this, mutable)
+    }
+
+    override fun downsampleOnly(): BitmapStream {
+        return DownsampleOnlyBitmapStream(this)
     }
 
     override fun decode(): Bitmap? {
