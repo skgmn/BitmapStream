@@ -2,30 +2,37 @@ package com.github.skgmn.bitmapstream.stream.canvas
 
 import android.graphics.*
 import android.graphics.text.MeasuredText
+import android.os.Build
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorLong
+import androidx.annotation.RequiresApi
 import com.github.skgmn.bitmapstream.BitmapStream
-import kotlin.math.*
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
-@Suppress("DEPRECATION")
+@Suppress("DEPRECATION", "UNCHECKED_CAST")
 internal class CanvasRecorder internal constructor(
     private val canvasWidth: Int,
     private val canvasHeight: Int
 ) : Canvas() {
-    private val records = mutableListOf<Canvas.(RectF) -> Unit>()
-    private val layers = mutableListOf(VirtualLayer(0))
+    private val records = mutableListOf<RecordEntry<*>>()
+    private val layers = mutableListOf(SimulatedLayer(0, Region(0, 0, canvasWidth, canvasHeight)))
     private var drawFilter: DrawFilter? = null
     private var density: Int = Bitmap.DENSITY_NONE
+    private val tempRect by lazy(LazyThreadSafetyMode.NONE) { RectF() }
+    private val tempPath by lazy(LazyThreadSafetyMode.NONE) { Path() }
 
-    private val currentLayer: VirtualLayer get() = layers.last()
+    private val currentLayer: SimulatedLayer get() = layers.last()
+    private val currentClipBounds get() = RectF(currentLayer.clipRegion.bounds)
 
-    private fun newLayer(): VirtualLayer {
+    private fun newLayer(): SimulatedLayer {
         return currentLayer.run {
             copy(index = index + 1)
         }.also { layers += it }
     }
 
-    private fun restoreLayerTo(index: Int): VirtualLayer? {
+    private fun popLayersTo(index: Int): SimulatedLayer? {
         val listIndex = layers.indexOfFirst { it.index >= index }
         return if (listIndex <= 0) {
             null
@@ -36,7 +43,7 @@ internal class CanvasRecorder internal constructor(
         }
     }
 
-    private fun popLayer(): VirtualLayer? {
+    private fun popLayer(): SimulatedLayer? {
         return if (layers.size <= 1) {
             null
         } else {
@@ -44,62 +51,91 @@ internal class CanvasRecorder internal constructor(
         }
     }
 
-    internal fun drawTo(canvas: Canvas, region: RectF) {
-        with(canvas) {
-            records.forEach { it(region) }
+    private fun removeRedundantRecords(bounds: RectF) {
+        records.removeAll {
+            it.bounds != null && bounds.contains(it.bounds)
         }
+    }
+
+    internal fun runDeferred() {
+        val newRecords = mutableListOf<RecordEntry<Any>>()
+        while (records.isNotEmpty()) {
+            val record = records.removeLast() as RecordEntry<Any>
+            if (record.deferred.value != null) {
+                newRecords.add(0, record)
+            }
+        }
+        records.addAll(newRecords)
+    }
+
+    internal fun drawTo(canvas: Canvas) {
+        val saveCount = canvas.save()
+        records.forEach { record ->
+            record as RecordEntry<Any>
+            record.deferred.value?.let {
+                record.drawer(canvas, it)
+            }
+        }
+        canvas.restoreToCount(saveCount)
     }
 
     internal fun drawStream(stream: BitmapStream, left: Float, top: Float, paint: Paint?) {
-        records += drawer@{
-            val bounds = RectF(it)
-            val metadata = stream.metadata
-            if (bounds.intersect(left, top, left + metadata.width, top + metadata.height)) {
-                val bitmap = stream.region(
-                    (bounds.left - left).roundToInt(),
-                    (bounds.top - top).roundToInt(),
-                    (bounds.right - left).roundToInt(),
-                    (bounds.bottom - top).roundToInt()
-                ).decode() ?: return@drawer
-                drawBitmap(bitmap, null, bounds, paint)
-            }
-        }
+        if (paint?.alpha == 0) return
+        val metadata = stream.metadata
+        drawStream(stream, RectF(left, top, left + metadata.width, top + metadata.height), paint)
     }
 
     internal fun drawStream(stream: BitmapStream, dst: RectF, paint: Paint?) {
-        records += drawer@{
-            val bounds = RectF(it)
-            if (bounds.intersect(dst)) {
-                val scaleX = dst.width() / stream.metadata.width
-                val scaleY = dst.height() / stream.metadata.height
-                val left = (bounds.left - dst.left) / scaleX
-                val top = (bounds.top - dst.top) / scaleY
-                val right = left + bounds.width() / scaleX
-                val bottom = top + bounds.height() / scaleY
-                val bitmap = stream
+        if (paint?.alpha == 0) return
+        tempRect.set(dst)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val visibleBounds = RectF(tempRect)
+        val invertedBounds = if (visibleBounds == dst) {
+            visibleBounds
+        } else {
+            RectF(visibleBounds).also { currentLayer.invert(it) }
+        }
+        val p = paint?.let { Paint(it) }
+        val scaleX = dst.width() / stream.metadata.width
+        val scaleY = dst.height() / stream.metadata.height
+        records += RecordEntry(
+            visibleBounds,
+            deferred = lazy(LazyThreadSafetyMode.NONE) {
+                stream
                     .region(
-                        left.roundToInt(),
-                        top.roundToInt(),
-                        right.roundToInt(),
-                        bottom.roundToInt()
+                        ((invertedBounds.left - dst.left) / scaleX).roundToInt(),
+                        ((invertedBounds.top - dst.top) / scaleY).roundToInt(),
+                        ((invertedBounds.right - dst.left) / scaleX).roundToInt(),
+                        ((invertedBounds.bottom - dst.top) / scaleY).roundToInt()
                     )
-                    .scaleBy(scaleX, scaleY)
+                    .scaleBy(
+                        scaleX * visibleBounds.width() / invertedBounds.width(),
+                        scaleY * visibleBounds.height() / invertedBounds.height()
+                    )
                     .downsampleOnly()
                     .decode()
-                    ?: return@drawer
-                drawBitmap(bitmap, null, bounds, paint)
+                    ?.also {
+                        if (!it.hasAlpha()) {
+                            removeRedundantRecords(visibleBounds)
+                        }
+                    }
+            },
+            drawer = {
+                drawBitmap(it, null, invertedBounds, p)
             }
-        }
+        )
     }
 
     override fun drawArc(
         left: Float, top: Float, right: Float, bottom: Float, startAngle: Float,
         sweepAngle: Float, useCenter: Boolean, paint: Paint
     ) {
-        records += {
-            if (it.intersects(left, top, right, bottom)) {
-                drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(left, top, right, bottom)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, p)
         }
     }
 
@@ -107,24 +143,36 @@ internal class CanvasRecorder internal constructor(
         oval: RectF, startAngle: Float, sweepAngle: Float, useCenter: Boolean,
         paint: Paint
     ) {
-        records += {
-            if (it.intersects(oval)) {
-                drawArc(oval, startAngle, sweepAngle, useCenter, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(oval)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val bounds = RectF(oval)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawArc(bounds, startAngle, sweepAngle, useCenter, p)
         }
     }
 
     override fun drawARGB(a: Int, r: Int, g: Int, b: Int) {
-        records += {
+        val bounds = currentClipBounds
+        if (a == 0xff) {
+            removeRedundantRecords(bounds)
+        }
+        records += RecordEntry(bounds) {
             drawARGB(a, r, g, b)
         }
     }
 
     override fun drawBitmap(bitmap: Bitmap, left: Float, top: Float, paint: Paint?) {
-        records += {
-            if (it.intersects(left, top, left + bitmap.width, top + bitmap.height)) {
-                drawBitmap(bitmap, left, top, paint)
-            }
+        if (paint?.alpha == 0) return
+        tempRect.set(left, top, left + bitmap.width, top + bitmap.height)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (!bitmap.hasAlpha() && (paint == null || paint.alpha == 0xff)) {
+            removeRedundantRecords(tempRect)
+        }
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry(RectF(tempRect)) {
+            drawBitmap(bitmap, left, top, p)
         }
     }
 
@@ -132,10 +180,17 @@ internal class CanvasRecorder internal constructor(
         bitmap: Bitmap, src: Rect?, dst: RectF,
         paint: Paint?
     ) {
-        records += {
-            if (it.intersects(dst)) {
-                drawBitmap(bitmap, src, dst, paint)
-            }
+        if (paint?.alpha == 0) return
+        tempRect.set(dst)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (!bitmap.hasAlpha() && (paint == null || paint.alpha == 0xff)) {
+            removeRedundantRecords(tempRect)
+        }
+        val src2 = src?.let { Rect(it) }
+        val dst2 = RectF(dst)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawBitmap(bitmap, src2, dst2, p)
         }
     }
 
@@ -143,20 +198,32 @@ internal class CanvasRecorder internal constructor(
         bitmap: Bitmap, src: Rect?, dst: Rect,
         paint: Paint?
     ) {
-        records += {
-            if (it.intersects(dst)) {
-                drawBitmap(bitmap, src, dst, paint)
-            }
+        if (paint?.alpha == 0) return
+        tempRect.set(dst)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (!bitmap.hasAlpha() && paint?.alpha ?: 0xff == 0xff) {
+            removeRedundantRecords(tempRect)
+        }
+        val src2 = src?.let { Rect(it) }
+        val dst2 = Rect(dst)
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry(RectF(tempRect)) {
+            drawBitmap(bitmap, src2, dst2, p)
         }
     }
 
     override fun drawBitmap(bitmap: Bitmap, matrix: Matrix, paint: Paint?) {
-        records += {
-            val bounds = RectF()
-            matrix.mapRect(bounds, bitmap.getBoundsAsFloat())
-            if (it.intersect(bounds)) {
-                drawBitmap(bitmap, matrix, paint)
-            }
+        if (paint?.alpha == 0) return
+        tempRect.set(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+        val staysRect = matrix.mapRect(tempRect)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (staysRect && !bitmap.hasAlpha() && paint?.alpha ?: 0xff == 0xff) {
+            removeRedundantRecords(tempRect)
+        }
+        val m = Matrix(matrix)
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry(RectF(tempRect)) {
+            drawBitmap(bitmap, m, p)
         }
     }
 
@@ -165,48 +232,78 @@ internal class CanvasRecorder internal constructor(
         verts: FloatArray, vertOffset: Int, colors: IntArray?, colorOffset: Int,
         paint: Paint?
     ) {
-        records += {
+        if (paint?.alpha == 0) return
+        val verts2 = verts.clone()
+        val colors2 = colors?.clone()
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry {
             drawBitmapMesh(
                 bitmap,
                 meshWidth,
                 meshHeight,
-                verts,
+                verts2,
                 vertOffset,
-                colors,
+                colors2,
                 colorOffset,
-                paint
+                p
             )
         }
     }
 
     override fun drawCircle(cx: Float, cy: Float, radius: Float, paint: Paint) {
-        records += {
-            if (it.intersects(cx - radius, cy - radius, cx + radius, cy + radius)) {
-                drawCircle(cx, cy, radius, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(cx - radius, cy - radius, cx + radius, cy + radius)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawCircle(cx, cy, radius, p)
         }
     }
 
     override fun drawColor(@ColorInt color: Int) {
-        records += {
+        val bounds = currentClipBounds
+        if (Color.alpha(color) == 0xff) {
+            removeRedundantRecords(bounds)
+        }
+        records += RecordEntry(bounds) {
             drawColor(color)
         }
     }
 
     override fun drawColor(@ColorInt color: Int, mode: PorterDuff.Mode) {
-        records += {
+        val bounds = currentClipBounds
+        if ((mode == PorterDuff.Mode.SRC_OVER || mode == PorterDuff.Mode.SRC) &&
+            Color.alpha(color) == 0xff
+        ) {
+            removeRedundantRecords(bounds)
+        }
+        records += RecordEntry(bounds) {
             drawColor(color, mode)
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun drawColor(@ColorInt color: Int, mode: BlendMode) {
-        records += {
+        val bounds = currentClipBounds
+        if ((mode == BlendMode.SRC_OVER || mode == BlendMode.SRC) &&
+            Color.alpha(color) == 0xff
+        ) {
+            removeRedundantRecords(bounds)
+        }
+        records += RecordEntry(bounds) {
             drawColor(color, mode)
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun drawColor(@ColorLong color: Long, mode: BlendMode) {
-        records += {
+        val bounds = currentClipBounds
+        if ((mode == BlendMode.SRC_OVER || mode == BlendMode.SRC) &&
+            Color.alpha(color) == 1f
+        ) {
+            removeRedundantRecords(bounds)
+        }
+        records += RecordEntry(bounds) {
             drawColor(color, mode)
         }
     }
@@ -218,10 +315,16 @@ internal class CanvasRecorder internal constructor(
         innerRadii: FloatArray,
         paint: Paint
     ) {
-        records += {
-            if (it.intersects(outer)) {
-                drawDoubleRoundRect(outer, outerRadii, inner, innerRadii, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(outer)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val outer2 = RectF(outer)
+        val outerRadii2 = outerRadii.clone()
+        val inner2 = RectF(inner)
+        val innerRadii2 = innerRadii.clone()
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawDoubleRoundRect(outer2, outerRadii2, inner2, innerRadii2, p)
         }
     }
 
@@ -234,115 +337,153 @@ internal class CanvasRecorder internal constructor(
         innerRy: Float,
         paint: Paint
     ) {
-        records += {
-            if (it.intersects(outer)) {
-                drawDoubleRoundRect(outer, outerRx, outerRy, inner, innerRx, innerRy, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(outer)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val outer2 = RectF(outer)
+        val inner2 = RectF(inner)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawDoubleRoundRect(outer2, outerRx, outerRy, inner2, innerRx, innerRy, p)
         }
     }
 
     override fun drawLine(startX: Float, startY: Float, stopX: Float, stopY: Float, paint: Paint) {
-        records += {
-            if (it.intersects(
-                    min(startX, stopX),
-                    min(startY, stopY),
-                    max(startX, stopX),
-                    max(startY, stopY)
-                )
-            ) {
-                drawLine(startX, startY, stopX, stopY, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(
+            min(startX, stopX),
+            min(startY, stopY),
+            max(startX, stopX),
+            max(startY, stopY)
+        )
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawLine(startX, startY, stopX, stopY, p)
         }
     }
 
     override fun drawLines(pts: FloatArray, paint: Paint) {
-        records += {
-            val seq = pts.asSequence()
-            val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
-            val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
-            if (it.intersects(
-                    requireNotNull(x.minOrNull()),
-                    requireNotNull(y.minOrNull()),
-                    requireNotNull(x.maxOrNull()),
-                    requireNotNull(y.maxOrNull()),
-                )
-            ) {
-                drawLines(pts, paint)
-            }
+        if (paint.alpha == 0) return
+        val seq = pts.asSequence()
+        val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
+        val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
+        tempRect.set(
+            requireNotNull(x.minOrNull()),
+            requireNotNull(y.minOrNull()),
+            requireNotNull(x.maxOrNull()),
+            requireNotNull(y.maxOrNull())
+        )
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val pts2 = pts.clone()
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawLines(pts2, p)
         }
     }
 
     override fun drawLines(pts: FloatArray, offset: Int, count: Int, paint: Paint) {
-        records += {
-            val seq = pts.asSequence().drop(offset).take(count)
-            val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
-            val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
-            if (it.intersects(
-                    requireNotNull(x.minOrNull()),
-                    requireNotNull(y.minOrNull()),
-                    requireNotNull(x.maxOrNull()),
-                    requireNotNull(y.maxOrNull()),
-                )
-            ) {
-                drawLines(pts, offset, count, paint)
-            }
+        if (paint.alpha == 0) return
+        val seq = pts.asSequence().drop(offset).take(count)
+        val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
+        val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
+        tempRect.set(
+            requireNotNull(x.minOrNull()),
+            requireNotNull(y.minOrNull()),
+            requireNotNull(x.maxOrNull()),
+            requireNotNull(y.maxOrNull())
+        )
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val pts2 = pts.clone()
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawLines(pts2, offset, count, p)
         }
     }
 
     override fun drawOval(oval: RectF, paint: Paint) {
-        records += {
-            if (it.intersects(oval)) {
-                drawOval(oval, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(oval)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val oval2 = RectF(oval)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawOval(oval2, p)
         }
     }
 
     override fun drawOval(left: Float, top: Float, right: Float, bottom: Float, paint: Paint) {
-        records += {
-            if (it.intersects(left, top, right, bottom)) {
-                drawOval(left, top, right, bottom, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(left, top, right, bottom)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawOval(left, top, right, bottom, p)
         }
     }
 
     override fun drawPaint(paint: Paint) {
-        records += {
-            drawPaint(paint)
+        val alpha = paint.alpha
+        if (alpha == 0) return
+        val bounds = currentClipBounds
+        if (!currentLayer.getVisibleBounds(bounds)) return
+        if (alpha == 0xff) {
+            removeRedundantRecords(bounds)
+        }
+        val p = Paint(paint)
+        records += RecordEntry(bounds) {
+            drawPaint(p)
         }
     }
 
     override fun drawPath(path: Path, paint: Paint) {
-        records += {
-            drawPath(path, paint)
+        val alpha = paint.alpha
+        if (alpha == 0) return
+        path.computeBounds(tempRect, true)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (alpha == 0xff && path.isRect(null)) {
+            removeRedundantRecords(tempRect)
+        }
+        val path2 = Path(path)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawPath(path2, p)
         }
     }
 
     override fun drawPicture(picture: Picture) {
-        records += {
-            if (it.intersects(0f, 0f, picture.width.toFloat(), picture.height.toFloat())) {
-                drawPicture(picture)
-            }
+        tempRect.set(0f, 0f, picture.width.toFloat(), picture.height.toFloat())
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        records += RecordEntry(RectF(tempRect)) {
+            drawPicture(picture)
         }
     }
 
     override fun drawPicture(picture: Picture, dst: Rect) {
-        records += {
-            if (it.intersects(dst)) {
-                drawPicture(picture, dst)
-            }
+        tempRect.set(dst)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val dst2 = Rect(dst)
+        records += RecordEntry(RectF(tempRect)) {
+            drawPicture(picture, dst2)
         }
     }
 
     override fun drawPicture(picture: Picture, dst: RectF) {
-        records += {
-            if (it.intersects(dst)) {
-                drawPicture(picture, dst)
-            }
+        tempRect.set(dst)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val dst2 = RectF(dst)
+        records += RecordEntry(RectF(tempRect)) {
+            drawPicture(picture, dst2)
         }
     }
 
     override fun drawColor(color: Long) {
-        records += {
+        val bounds = currentClipBounds
+        if (!currentLayer.getVisibleBounds(bounds)) return
+        if (Color.alpha(color) == 1f) {
+            removeRedundantRecords(bounds)
+        }
+        records += RecordEntry(bounds) {
             drawColor(color)
         }
     }
@@ -362,7 +503,7 @@ internal class CanvasRecorder internal constructor(
     }
 
     override fun isOpaque(): Boolean {
-        return true
+        return false
     }
 
     override fun getWidth(): Int {
@@ -383,7 +524,7 @@ internal class CanvasRecorder internal constructor(
 
     override fun save(): Int {
         val layer = newLayer()
-        records += {
+        records += RecordEntry {
             layer.actualLayerIndex = save()
         }
         return layer.index
@@ -391,9 +532,11 @@ internal class CanvasRecorder internal constructor(
 
     override fun saveLayer(bounds: RectF?, paint: Paint?): Int {
         val layer = newLayer()
-        bounds?.let { layer.clip(it, Region.Op.INTERSECT) }
-        records += {
-            layer.actualLayerIndex = saveLayer(bounds, paint)
+        val bounds2 = bounds?.let { RectF(it) }
+        bounds2?.let { layer.clip(it, Region.Op.INTERSECT) }
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry {
+            layer.actualLayerIndex = saveLayer(bounds2, p)
         }
         return layer.index
     }
@@ -406,18 +549,21 @@ internal class CanvasRecorder internal constructor(
         paint: Paint?
     ): Int {
         val layer = newLayer()
-        layer.clip(left, top, right, bottom, Region.Op.INTERSECT)
-        records += {
-            layer.actualLayerIndex = saveLayer(left, top, right, bottom, paint)
+        tempRect.set(left, top, right, bottom)
+        layer.clip(tempRect, Region.Op.INTERSECT)
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry {
+            layer.actualLayerIndex = saveLayer(left, top, right, bottom, p)
         }
         return layer.index
     }
 
     override fun saveLayerAlpha(bounds: RectF?, alpha: Int): Int {
         val layer = newLayer()
-        bounds?.let { layer.clip(it, Region.Op.INTERSECT) }
-        records += {
-            layer.actualLayerIndex = saveLayerAlpha(bounds, alpha)
+        val bounds2 = bounds?.let { RectF(it) }
+        bounds2?.let { layer.clip(it, Region.Op.INTERSECT) }
+        records += RecordEntry {
+            layer.actualLayerIndex = saveLayerAlpha(bounds2, alpha)
         }
         return layer.index
     }
@@ -430,17 +576,19 @@ internal class CanvasRecorder internal constructor(
         alpha: Int
     ): Int {
         val layer = newLayer()
-        layer.clip(left, top, right, bottom, Region.Op.INTERSECT)
-        records += {
+        tempRect.set(left, top, right, bottom)
+        layer.clip(tempRect, Region.Op.INTERSECT)
+        records += RecordEntry {
             layer.actualLayerIndex = saveLayerAlpha(left, top, right, bottom, alpha)
         }
         return layer.index
     }
 
     override fun restore() {
-        records += {
-            popLayer()
-            restore()
+        records += RecordEntry {
+            popLayer()?.actualLayerIndex?.let {
+                restoreToCount(it)
+            }
         }
     }
 
@@ -449,61 +597,73 @@ internal class CanvasRecorder internal constructor(
     }
 
     override fun restoreToCount(saveCount: Int) {
-        records += {
-            restoreLayerTo(saveCount)?.actualLayerIndex?.let { restoreToCount(it) }
+        records += RecordEntry {
+            popLayersTo(saveCount)?.actualLayerIndex?.let { restoreToCount(it) }
         }
     }
 
     override fun translate(dx: Float, dy: Float) {
-        records += {
+        if (dx == 0f && dy == 0f) return
+        currentLayer.updateMatrix { postTranslate(dx, dy) }
+        records += RecordEntry {
             translate(dx, dy)
         }
     }
 
     override fun scale(sx: Float, sy: Float) {
-        records += {
+        if (sx == 1f && sy == 1f) return
+        currentLayer.updateMatrix { postScale(sx, sy) }
+        records += RecordEntry {
             scale(sx, sy)
         }
     }
 
     override fun rotate(degrees: Float) {
-        records += {
+        if (degrees % 360f == 0f) return
+        currentLayer.updateMatrix { postRotate(degrees) }
+        records += RecordEntry {
             rotate(degrees)
         }
     }
 
     override fun skew(sx: Float, sy: Float) {
-        records += {
+        currentLayer.updateMatrix { postSkew(sx, sy) }
+        records += RecordEntry {
             skew(sx, sy)
         }
     }
 
     override fun concat(matrix: Matrix?) {
-        records += {
-            concat(matrix)
+        if (matrix?.isIdentity != false) return
+        val m = Matrix(matrix)
+        currentLayer.updateMatrix { postConcat(m) }
+        records += RecordEntry {
+            concat(m)
         }
     }
 
     override fun setMatrix(matrix: Matrix?) {
-        records += {
-            setMatrix(matrix)
+        val m = matrix?.let { Matrix(it) }
+        currentLayer.updateMatrix { set(m) }
+        records += RecordEntry {
+            setMatrix(m)
         }
     }
 
     override fun clipRect(rect: RectF): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(rect, Region.Op.INTERSECT)
-        records += {
-            clipRect(rect)
+        val rect2 = RectF(rect)
+        val result = currentLayer.clip(rect2, Region.Op.INTERSECT)
+        records += RecordEntry {
+            clipRect(rect2)
         }
         return result
     }
 
     override fun clipRect(rect: Rect): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(rect, Region.Op.INTERSECT)
-        records += {
-            clipRect(rect)
+        val rect2 = RectF(rect)
+        val result = currentLayer.clip(rect2, Region.Op.INTERSECT)
+        records += RecordEntry {
+            clipRect(rect2)
         }
         return result
     }
@@ -515,91 +675,94 @@ internal class CanvasRecorder internal constructor(
         bottom: Float,
         op: Region.Op
     ): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(left, top, right, bottom, op)
-        records += {
+        tempRect.set(left, top, right, bottom)
+        val result = currentLayer.clip(tempRect, op)
+        records += RecordEntry {
             clipRect(left, top, right, bottom, op)
         }
         return result
     }
 
     override fun clipRect(left: Float, top: Float, right: Float, bottom: Float): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(left, top, right, bottom, Region.Op.INTERSECT)
-        records += {
+        tempRect.set(left, top, right, bottom)
+        val result = currentLayer.clip(tempRect, Region.Op.INTERSECT)
+        records += RecordEntry {
             clipRect(left, top, right, bottom)
         }
         return result
     }
 
     override fun clipRect(left: Int, top: Int, right: Int, bottom: Int): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(left, top, right, bottom, Region.Op.INTERSECT)
-        records += {
+        tempRect.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+        val result = currentLayer.clip(tempRect, Region.Op.INTERSECT)
+        records += RecordEntry {
             clipRect(left, top, right, bottom)
         }
         return result
     }
 
     override fun clipOutRect(rect: RectF): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(rect, Region.Op.DIFFERENCE)
-        records += {
-            clipRect(rect)
+        val rect2 = RectF(rect)
+        val result = currentLayer.clip(rect2, Region.Op.DIFFERENCE)
+        records += RecordEntry {
+            clipRect(rect2)
         }
         return result
     }
 
     override fun clipOutRect(rect: Rect): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(rect, Region.Op.DIFFERENCE)
-        records += {
-            clipRect(rect)
+        val rect2 = RectF(rect)
+        val result = currentLayer.clip(rect2, Region.Op.DIFFERENCE)
+        records += RecordEntry {
+            clipRect(rect2)
         }
         return result
     }
 
     override fun clipOutRect(left: Float, top: Float, right: Float, bottom: Float): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(left, top, right, bottom, Region.Op.DIFFERENCE)
-        records += {
+        tempRect.set(left, top, right, bottom)
+        val result = currentLayer.clip(tempRect, Region.Op.DIFFERENCE)
+        records += RecordEntry {
             clipRect(left, top, right, bottom)
         }
         return result
     }
 
     override fun clipOutRect(left: Int, top: Int, right: Int, bottom: Int): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(left, top, right, bottom, Region.Op.DIFFERENCE)
-        records += {
+        tempRect.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+        val result = currentLayer.clip(tempRect, Region.Op.DIFFERENCE)
+        records += RecordEntry {
             clipRect(left, top, right, bottom)
         }
         return result
     }
 
     override fun clipPath(path: Path, op: Region.Op): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(path, Region.Op.INTERSECT)
-        records += {
-            clipPath(path, op)
+        tempPath.set(path)
+        val result = currentLayer.clip(tempPath, op)
+        val path2 = Path(path)
+        records += RecordEntry {
+            clipPath(path2, op)
         }
         return result
     }
 
     override fun clipPath(path: Path): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(path, Region.Op.INTERSECT)
-        records += {
-            clipPath(path)
+        tempPath.set(path)
+        val result = currentLayer.clip(tempPath, Region.Op.INTERSECT)
+        val path2 = Path(path)
+        records += RecordEntry {
+            clipPath(path2)
         }
         return result
     }
 
     override fun clipOutPath(path: Path): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(path, Region.Op.DIFFERENCE)
-        records += {
-            clipPath(path)
+        tempPath.set(path)
+        val result = currentLayer.clip(tempPath, Region.Op.DIFFERENCE)
+        val path2 = Path(path)
+        records += RecordEntry {
+            clipPath(path2)
         }
         return result
     }
@@ -610,27 +773,27 @@ internal class CanvasRecorder internal constructor(
 
     override fun setDrawFilter(filter: DrawFilter?) {
         drawFilter = filter
-        records += {
+        records += RecordEntry {
             drawFilter = filter
         }
     }
 
     override fun quickReject(rect: RectF, type: EdgeType): Boolean {
-        return currentLayer.clipRegion.quickReject(rect.roundOutToRect())
+        return quickReject(rect)
     }
 
     override fun quickReject(rect: RectF): Boolean {
-        return currentLayer.clipRegion.quickReject(rect.roundOutToRect())
+        tempRect.set(rect)
+        return !currentLayer.getVisibleBounds(tempRect)
     }
 
     override fun quickReject(path: Path, type: EdgeType): Boolean {
-        val clipRegion = currentLayer.clipRegion
-        return clipRegion.quickReject(path.toRegion(clipRegion))
+        return quickReject(path)
     }
 
     override fun quickReject(path: Path): Boolean {
-        val clipRegion = currentLayer.clipRegion
-        return clipRegion.quickReject(path.toRegion(clipRegion))
+        tempPath.set(path)
+        return currentLayer.quickReject(tempPath)
     }
 
     override fun quickReject(
@@ -640,23 +803,12 @@ internal class CanvasRecorder internal constructor(
         bottom: Float,
         type: EdgeType
     ): Boolean {
-        val clipRegion = currentLayer.clipRegion
-        return clipRegion.quickReject(
-            floor(left).toInt(),
-            floor(top).toInt(),
-            ceil(right).toInt(),
-            ceil(bottom).toInt()
-        )
+        return quickReject(left, top, right, bottom)
     }
 
     override fun quickReject(left: Float, top: Float, right: Float, bottom: Float): Boolean {
-        val clipRegion = currentLayer.clipRegion
-        return clipRegion.quickReject(
-            floor(left).toInt(),
-            floor(top).toInt(),
-            ceil(right).toInt(),
-            ceil(bottom).toInt()
-        )
+        tempRect.set(left, top, right, bottom)
+        return !currentLayer.getVisibleBounds(tempRect)
     }
 
     override fun getClipBounds(bounds: Rect?): Boolean {
@@ -664,50 +816,49 @@ internal class CanvasRecorder internal constructor(
         return if (bounds == null) {
             !clipRegion.isEmpty
         } else {
-            clipRegion.getBounds(bounds)
+            if (clipRegion.getBounds(bounds)) {
+                tempRect.set(bounds)
+                currentLayer.invert(tempRect)
+                bounds.set(tempRect)
+                true
+            } else {
+                false
+            }
         }
     }
 
     override fun drawPoint(x: Float, y: Float, paint: Paint) {
-        records += {
-            if (it.contains(x, y)) {
-                drawPoint(x, y, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(x, y, x + 1, y + 1)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawPoint(x, y, p)
         }
     }
 
     override fun drawPoints(pts: FloatArray, offset: Int, count: Int, paint: Paint) {
-        records += {
-            val seq = pts.asSequence().drop(offset).take(count)
-            val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
-            val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
-            if (it.intersects(
-                    requireNotNull(x.minOrNull()),
-                    requireNotNull(y.minOrNull()),
-                    requireNotNull(x.maxOrNull()),
-                    requireNotNull(y.maxOrNull()),
-                )
-            ) {
-                drawPoints(pts, offset, count, paint)
-            }
+        if (paint.alpha == 0 || count == 0) return
+        val pts2 = pts.sliceArray(offset until offset + count)
+        if (!currentLayer.containsAny(pts2)) return
+        pts.copyInto(pts2, 0, offset, offset + count)
+        val seq = pts2.asSequence()
+        val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
+        val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
+        val bounds = RectF(
+            checkNotNull(x.minOrNull()),
+            checkNotNull(y.minOrNull()),
+            checkNotNull(x.maxOrNull()),
+            checkNotNull(y.maxOrNull())
+        )
+        val p = Paint(paint)
+        records += RecordEntry(bounds) {
+            drawPoints(pts2, p)
         }
     }
 
     override fun drawPoints(pts: FloatArray, paint: Paint) {
-        records += {
-            val seq = pts.asSequence()
-            val x = seq.filterIndexed { index, _ -> index % 2 == 0 }
-            val y = seq.filterIndexed { index, _ -> index % 2 != 0 }
-            if (it.intersects(
-                    requireNotNull(x.minOrNull()),
-                    requireNotNull(y.minOrNull()),
-                    requireNotNull(x.maxOrNull()),
-                    requireNotNull(y.maxOrNull()),
-                )
-            ) {
-                drawPoints(pts, paint)
-            }
-        }
+        drawPoints(pts, 0, pts.size, paint)
     }
 
     override fun drawPosText(
@@ -717,52 +868,76 @@ internal class CanvasRecorder internal constructor(
         pos: FloatArray,
         paint: Paint
     ) {
-        records += {
+        if (paint.alpha == 0) return
+        records += RecordEntry {
             drawPosText(text, index, count, pos, paint)
         }
     }
 
     override fun drawPosText(text: String, pos: FloatArray, paint: Paint) {
-        records += {
+        if (paint.alpha == 0) return
+        records += RecordEntry {
             drawPosText(text, pos, paint)
         }
     }
 
     override fun drawRect(rect: RectF, paint: Paint) {
-        records += {
-            if (it.intersects(rect)) {
-                drawRect(rect, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(rect)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (paint.alpha == 0xff) {
+            removeRedundantRecords(tempRect)
+        }
+        val rect2 = RectF(rect)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawRect(rect2, p)
         }
     }
 
     override fun drawRect(r: Rect, paint: Paint) {
-        records += {
-            if (it.intersects(r)) {
-                drawRect(r, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(r)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (paint.alpha == 0xff) {
+            removeRedundantRecords(tempRect)
+        }
+        val rect2 = Rect(r)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawRect(rect2, p)
         }
     }
 
     override fun drawRect(left: Float, top: Float, right: Float, bottom: Float, paint: Paint) {
-        records += {
-            if (it.intersects(left, top, right, bottom)) {
-                drawRect(left, top, right, bottom, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(left, top, right, bottom)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (paint.alpha == 0xff) {
+            removeRedundantRecords(tempRect)
+        }
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawRect(left, top, right, bottom, p)
         }
     }
 
     override fun drawRGB(r: Int, g: Int, b: Int) {
-        records += {
+        val bounds = currentClipBounds
+        removeRedundantRecords(bounds)
+        records += RecordEntry(bounds) {
             drawRGB(r, g, b)
         }
     }
 
     override fun drawRoundRect(rect: RectF, rx: Float, ry: Float, paint: Paint) {
-        records += {
-            if (it.intersects(rect)) {
-                drawRoundRect(rect, rx, ry, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(rect)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val rect2 = RectF(rect)
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawRoundRect(rect2, rx, ry, p)
         }
     }
 
@@ -775,10 +950,12 @@ internal class CanvasRecorder internal constructor(
         ry: Float,
         paint: Paint
     ) {
-        records += {
-            if (it.intersects(left, top, right, bottom)) {
-                drawRoundRect(left, top, right, bottom, rx, ry, paint)
-            }
+        if (paint.alpha == 0) return
+        tempRect.set(left, top, right, bottom)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawRoundRect(left, top, right, bottom, rx, ry, p)
         }
     }
 
@@ -790,23 +967,36 @@ internal class CanvasRecorder internal constructor(
         y: Float,
         paint: Paint
     ) {
-        records += {
-            drawText(text, index, count, x, y, paint)
+        if (paint.alpha == 0) return
+        val bounds = Rect()
+        paint.getTextBounds(text, index, count, bounds)
+        tempRect.set(bounds)
+        tempRect.offset(x, y)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawText(text, index, count, x, y, p)
         }
     }
 
     override fun drawText(text: String, x: Float, y: Float, paint: Paint) {
-        records += {
-            drawText(text, x, y, paint)
-        }
+        drawText(text, 0, text.length, x, y, paint)
     }
 
     override fun drawText(text: String, start: Int, end: Int, x: Float, y: Float, paint: Paint) {
-        records += {
-            drawText(text, start, end, x, y, paint)
+        if (paint.alpha == 0) return
+        val bounds = Rect()
+        paint.getTextBounds(text, start, end, bounds)
+        tempRect.set(bounds)
+        tempRect.offset(x, y)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawText(text, start, end, x, y, p)
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun drawText(
         text: CharSequence,
         start: Int,
@@ -815,8 +1005,15 @@ internal class CanvasRecorder internal constructor(
         y: Float,
         paint: Paint
     ) {
-        records += {
-            drawText(text, start, end, x, y, paint)
+        if (paint.alpha == 0) return
+        val bounds = Rect()
+        paint.getTextBounds(text, start, end, bounds)
+        tempRect.set(bounds)
+        tempRect.offset(x, y)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        val p = Paint(paint)
+        records += RecordEntry(RectF(tempRect)) {
+            drawText(text, start, end, x, y, p)
         }
     }
 
@@ -829,8 +1026,11 @@ internal class CanvasRecorder internal constructor(
         vOffset: Float,
         paint: Paint
     ) {
-        records += {
-            drawTextOnPath(text, index, count, path, hOffset, vOffset, paint)
+        if (paint.alpha == 0) return
+        val path2 = Path(path)
+        val p = Paint(paint)
+        records += RecordEntry {
+            drawTextOnPath(text, index, count, path2, hOffset, vOffset, p)
         }
     }
 
@@ -841,8 +1041,11 @@ internal class CanvasRecorder internal constructor(
         vOffset: Float,
         paint: Paint
     ) {
-        records += {
-            drawTextOnPath(text, path, hOffset, vOffset, paint)
+        if (paint.alpha == 0) return
+        val path2 = Path(path)
+        val p = Paint(paint)
+        records += RecordEntry {
+            drawTextOnPath(text, path2, hOffset, vOffset, p)
         }
     }
 
@@ -857,8 +1060,10 @@ internal class CanvasRecorder internal constructor(
         isRtl: Boolean,
         paint: Paint
     ) {
-        records += {
-            drawTextRun(text, index, count, contextIndex, contextCount, x, y, isRtl, paint)
+        if (paint.alpha == 0) return
+        val p = Paint(paint)
+        records += RecordEntry {
+            drawTextRun(text, index, count, contextIndex, contextCount, x, y, isRtl, p)
         }
     }
 
@@ -873,8 +1078,10 @@ internal class CanvasRecorder internal constructor(
         isRtl: Boolean,
         paint: Paint
     ) {
-        records += {
-            drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, paint)
+        if (paint.alpha == 0) return
+        val p = Paint(paint)
+        records += RecordEntry {
+            drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, p)
         }
     }
 
@@ -889,8 +1096,10 @@ internal class CanvasRecorder internal constructor(
         isRtl: Boolean,
         paint: Paint
     ) {
-        records += {
-            drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, paint)
+        if (paint.alpha == 0) return
+        val p = Paint(paint)
+        records += RecordEntry {
+            drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, p)
         }
     }
 
@@ -908,26 +1117,36 @@ internal class CanvasRecorder internal constructor(
         indexCount: Int,
         paint: Paint
     ) {
-        records += {
+        if (paint.alpha == 0) return
+        val verts2 = verts.clone()
+        val texs2 = texs?.clone()
+        val colors2 = colors?.clone()
+        val indices2 = indices?.clone()
+        val p = Paint(paint)
+        records += RecordEntry {
             drawVertices(
                 mode,
                 vertexCount,
-                verts,
+                verts2,
                 vertOffset,
-                texs,
+                texs2,
                 texOffset,
-                colors,
+                colors2,
                 colorOffset,
-                indices,
+                indices2,
                 indexOffset,
                 indexCount,
-                paint
+                p
             )
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun drawRenderNode(renderNode: RenderNode) {
-        records += {
+        if (renderNode.alpha == 0f) return
+        tempRect.set(0f, 0f, renderNode.width.toFloat(), renderNode.height.toFloat())
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        records += RecordEntry(RectF(tempRect)) {
             drawRenderNode(renderNode)
         }
     }
@@ -943,10 +1162,15 @@ internal class CanvasRecorder internal constructor(
         hasAlpha: Boolean,
         paint: Paint?
     ) {
-        records += {
-            if (it.intersects(x, y, x + width, y + height)) {
-                drawBitmap(colors, offset, stride, x, y, width, height, hasAlpha, paint)
-            }
+        if (paint?.alpha == 0) return
+        tempRect.set(x, y, x + width, y + height)
+        if (!currentLayer.getVisibleBounds(tempRect)) return
+        if (!hasAlpha && paint?.alpha ?: 0xff == 0xff) {
+            removeRedundantRecords(tempRect)
+        }
+        val p = paint?.let { Paint(it) }
+        records += RecordEntry(RectF(tempRect)) {
+            drawBitmap(colors, offset, stride, x, y, width, height, hasAlpha, p)
         }
     }
 
@@ -961,11 +1185,7 @@ internal class CanvasRecorder internal constructor(
         hasAlpha: Boolean,
         paint: Paint?
     ) {
-        records += {
-            if (it.intersects(x, y, x + width, y + height)) {
-                drawBitmap(colors, offset, stride, x, y, width, height, hasAlpha, paint)
-            }
-        }
+        drawBitmap(colors, offset, stride, x.toFloat(), y.toFloat(), width, height, hasAlpha, paint)
     }
 
     override fun saveLayer(bounds: RectF?, paint: Paint?, saveFlags: Int): Int {
@@ -999,94 +1219,30 @@ internal class CanvasRecorder internal constructor(
     }
 
     override fun clipRect(rect: RectF, op: Region.Op): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(rect, op)
-        records += {
-            clipRect(rect, op)
+        val rect2 = RectF(rect)
+        val result = currentLayer.clip(rect2, op)
+        records += RecordEntry {
+            clipRect(rect2, op)
         }
         return result
     }
 
     override fun clipRect(rect: Rect, op: Region.Op): Boolean {
-        val layer = currentLayer
-        val result = layer.clip(rect, op)
-        records += {
-            clipRect(rect, op)
+        tempRect.set(rect)
+        val result = currentLayer.clip(tempRect, op)
+        val rect2 = Rect(rect)
+        records += RecordEntry {
+            clipRect(rect2, op)
         }
         return result
     }
-
-    private inner class VirtualLayer(
-        val index: Int,
-        val clipRegion: Region = Region(0, 0, canvasWidth, canvasHeight),
-        var actualLayerIndex: Int? = null
-    ) {
-        fun copy(
-            index: Int = this.index,
-            clipRegion: Region = Region(this.clipRegion),
-            actualLayerIndex: Int? = this.actualLayerIndex
-        ) = VirtualLayer(index, clipRegion, actualLayerIndex)
-
-        fun clip(bounds: Rect, op: Region.Op): Boolean {
-            return clipRegion.op(bounds, op)
-        }
-
-        fun clip(bounds: RectF, op: Region.Op): Boolean {
-            return clipRegion.op(bounds.roundOutToRect(), op)
-        }
-
-        fun clip(left: Int, top: Int, right: Int, bottom: Int, op: Region.Op): Boolean {
-            return clipRegion.op(left, top, right, bottom, op)
-        }
-
-        fun clip(left: Float, top: Float, right: Float, bottom: Float, op: Region.Op): Boolean {
-            return clipRegion.op(
-                left.roundToInt(),
-                top.roundToInt(),
-                right.roundToInt(),
-                bottom.roundToInt(),
-                op
-            )
-        }
-
-        fun clip(path: Path, op: Region.Op): Boolean {
-            return clipRegion.op(path.toRegion(clipRegion), op)
-        }
-    }
 }
 
-private fun RectF.roundOutToRect(): Rect {
-    return Rect().also { roundOut(it) }
-}
-
-private fun Path.toRegion(clipRegion: Region): Region {
-    return Region().also {
-        it.setPath(this, clipRegion)
-    }
-}
-
-private fun Bitmap.getBoundsAsFloat(left: Float = 0f, top: Float = 0f): RectF {
-    return RectF(left, top, left + width.toFloat(), top + height.toFloat())
-}
-
-private fun RectF.intersects(rect: RectF): Boolean {
-    return intersects(rect.left, rect.top, rect.right, rect.bottom)
-}
-
-private fun RectF.intersects(rect: Rect): Boolean {
-    return intersects(
-        rect.left.toFloat(),
-        rect.top.toFloat(),
-        rect.right.toFloat(),
-        rect.bottom.toFloat()
-    )
-}
-
-private fun RectF.intersects(left: Int, top: Int, right: Int, bottom: Int): Boolean {
-    return intersects(
-        left.toFloat(),
-        top.toFloat(),
-        right.toFloat(),
-        bottom.toFloat()
+private fun Rect.set(rect: RectF) {
+    set(
+        rect.left.roundToInt(),
+        rect.top.roundToInt(),
+        rect.right.roundToInt(),
+        rect.bottom.roundToInt()
     )
 }

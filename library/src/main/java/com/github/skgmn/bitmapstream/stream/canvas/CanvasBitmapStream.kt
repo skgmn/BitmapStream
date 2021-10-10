@@ -3,7 +3,6 @@ package com.github.skgmn.bitmapstream.stream.canvas
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
-import android.graphics.RectF
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
@@ -106,17 +105,16 @@ internal class CanvasBitmapStream(
     }
 
     override fun decode(): Bitmap? {
-        val canvasRecorder = CanvasRecorder(canvasWidth, canvasHeight)
+        val canvasRecorder = CanvasRecorder(metadata.width, metadata.height)
+        canvasRecorder.translate(-region.left * scaleX, -region.top * scaleY)
+        canvasRecorder.scale(scaleX, scaleY)
+        canvasRecorder.clipRect(region)
         with(canvasRecorder) { drawer() }
-
-        val translateX = -region.left / scaleX
-        val translateY = -region.top / scaleY
+        canvasRecorder.runDeferred()
 
         val bitmap = Bitmap.createBitmap(metadata.width, metadata.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        canvas.translate(translateX, translateY)
-        canvas.scale(scaleX, scaleY, translateX, translateY)
-        canvasRecorder.drawTo(canvas, RectF(region))
+        canvasRecorder.drawTo(canvas)
 
         return bitmap
     }
