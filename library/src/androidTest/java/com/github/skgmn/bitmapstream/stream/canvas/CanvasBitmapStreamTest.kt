@@ -22,8 +22,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(FactorySourceBitmapStream(source))
         val canvas = CanvasBitmapStream(400, 300) {
-            drawColor(Color.BLACK)
-            drawStream(imageStream, 210f, 160f, null)
+            it.drawColor(Color.BLACK)
+            it.drawStream(imageStream, 210f, 160f, null)
         }
         val byDecoder = canvas.decode()
 
@@ -54,8 +54,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
                 .scaleTo(200, 250)
         )
         val canvas = CanvasBitmapStream(400, 300) {
-            drawColor(Color.BLUE)
-            drawStream(imageStream, -40f, -50f, null)
+            it.drawColor(Color.BLUE)
+            it.drawStream(imageStream, -40f, -50f, null)
         }
         val byDecoder = canvas.decode()
 
@@ -87,8 +87,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
                 .scaleTo(200, 250)
         )
         val canvas = CanvasBitmapStream(400, 300) {
-            drawColor(Color.BLUE)
-            drawStream(imageStream, -40f, -50f, null)
+            it.drawColor(Color.BLUE)
+            it.drawStream(imageStream, -40f, -50f, null)
         }
         val byDecoder = canvas.scaleTo(123, 456).decode()
 
@@ -114,8 +114,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
                 .scaleTo(200, 250)
         )
         val canvas = CanvasBitmapStream(400, 300) {
-            drawColor(Color.BLUE)
-            drawStream(imageStream, -40f, -50f, null)
+            it.drawColor(Color.BLUE)
+            it.drawStream(imageStream, -40f, -50f, null)
         }
         val byDecoder = canvas.scaleBy(0.9f, 0.8f).decode()
 

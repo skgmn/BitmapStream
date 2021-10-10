@@ -12,19 +12,23 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 @Suppress("DEPRECATION", "UNCHECKED_CAST")
-internal class CanvasRecorder internal constructor(
+internal class CanvasOptimizer internal constructor(
+    bitmap: Bitmap,
     private val canvasWidth: Int,
     private val canvasHeight: Int
 ) : Canvas() {
     private val records = mutableListOf<RecordEntry<*>>()
     private val layers = mutableListOf(SimulatedLayer(0, Region(0, 0, canvasWidth, canvasHeight)))
     private var drawFilter: DrawFilter? = null
-    private var density: Int = Bitmap.DENSITY_NONE
     private val tempRect by lazy(LazyThreadSafetyMode.NONE) { RectF() }
     private val tempPath by lazy(LazyThreadSafetyMode.NONE) { Path() }
 
     private val currentLayer: SimulatedLayer get() = layers.last()
     private val currentClipBounds get() = RectF(currentLayer.clipRegion.bounds)
+
+    init {
+        super.setBitmap(bitmap)
+    }
 
     private fun newLayer(): SimulatedLayer {
         return currentLayer.run {
@@ -68,15 +72,14 @@ internal class CanvasRecorder internal constructor(
         records.addAll(newRecords)
     }
 
-    internal fun drawTo(canvas: Canvas) {
-        val saveCount = canvas.save()
+    internal fun flush() {
         records.forEach { record ->
             record as RecordEntry<Any>
             record.deferred.value?.let {
-                record.drawer(canvas, it)
+                record.drawer(it)
             }
         }
-        canvas.restoreToCount(saveCount)
+        records.clear()
     }
 
     internal fun drawStream(stream: BitmapStream, left: Float, top: Float, paint: Paint?) {
@@ -121,7 +124,7 @@ internal class CanvasRecorder internal constructor(
                     }
             },
             drawer = {
-                drawBitmap(it, null, invertedBounds, p)
+                super.drawBitmap(it, null, invertedBounds, p)
             }
         )
     }
@@ -135,7 +138,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, p)
+            super.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, p)
         }
     }
 
@@ -149,7 +152,7 @@ internal class CanvasRecorder internal constructor(
         val bounds = RectF(oval)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawArc(bounds, startAngle, sweepAngle, useCenter, p)
+            super.drawArc(bounds, startAngle, sweepAngle, useCenter, p)
         }
     }
 
@@ -159,7 +162,7 @@ internal class CanvasRecorder internal constructor(
             removeRedundantRecords(bounds)
         }
         records += RecordEntry(bounds) {
-            drawARGB(a, r, g, b)
+            super.drawARGB(a, r, g, b)
         }
     }
 
@@ -172,7 +175,7 @@ internal class CanvasRecorder internal constructor(
         }
         val p = paint?.let { Paint(it) }
         records += RecordEntry(RectF(tempRect)) {
-            drawBitmap(bitmap, left, top, p)
+            super.drawBitmap(bitmap, left, top, p)
         }
     }
 
@@ -190,7 +193,7 @@ internal class CanvasRecorder internal constructor(
         val dst2 = RectF(dst)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawBitmap(bitmap, src2, dst2, p)
+            super.drawBitmap(bitmap, src2, dst2, p)
         }
     }
 
@@ -208,7 +211,7 @@ internal class CanvasRecorder internal constructor(
         val dst2 = Rect(dst)
         val p = paint?.let { Paint(it) }
         records += RecordEntry(RectF(tempRect)) {
-            drawBitmap(bitmap, src2, dst2, p)
+            super.drawBitmap(bitmap, src2, dst2, p)
         }
     }
 
@@ -223,7 +226,7 @@ internal class CanvasRecorder internal constructor(
         val m = Matrix(matrix)
         val p = paint?.let { Paint(it) }
         records += RecordEntry(RectF(tempRect)) {
-            drawBitmap(bitmap, m, p)
+            super.drawBitmap(bitmap, m, p)
         }
     }
 
@@ -237,7 +240,7 @@ internal class CanvasRecorder internal constructor(
         val colors2 = colors?.clone()
         val p = paint?.let { Paint(it) }
         records += RecordEntry {
-            drawBitmapMesh(
+            super.drawBitmapMesh(
                 bitmap,
                 meshWidth,
                 meshHeight,
@@ -256,7 +259,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawCircle(cx, cy, radius, p)
+            super.drawCircle(cx, cy, radius, p)
         }
     }
 
@@ -266,7 +269,7 @@ internal class CanvasRecorder internal constructor(
             removeRedundantRecords(bounds)
         }
         records += RecordEntry(bounds) {
-            drawColor(color)
+            super.drawColor(color)
         }
     }
 
@@ -278,7 +281,7 @@ internal class CanvasRecorder internal constructor(
             removeRedundantRecords(bounds)
         }
         records += RecordEntry(bounds) {
-            drawColor(color, mode)
+            super.drawColor(color, mode)
         }
     }
 
@@ -291,7 +294,7 @@ internal class CanvasRecorder internal constructor(
             removeRedundantRecords(bounds)
         }
         records += RecordEntry(bounds) {
-            drawColor(color, mode)
+            super.drawColor(color, mode)
         }
     }
 
@@ -304,7 +307,7 @@ internal class CanvasRecorder internal constructor(
             removeRedundantRecords(bounds)
         }
         records += RecordEntry(bounds) {
-            drawColor(color, mode)
+            super.drawColor(color, mode)
         }
     }
 
@@ -324,7 +327,7 @@ internal class CanvasRecorder internal constructor(
         val innerRadii2 = innerRadii.clone()
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawDoubleRoundRect(outer2, outerRadii2, inner2, innerRadii2, p)
+            super.drawDoubleRoundRect(outer2, outerRadii2, inner2, innerRadii2, p)
         }
     }
 
@@ -344,7 +347,7 @@ internal class CanvasRecorder internal constructor(
         val inner2 = RectF(inner)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawDoubleRoundRect(outer2, outerRx, outerRy, inner2, innerRx, innerRy, p)
+            super.drawDoubleRoundRect(outer2, outerRx, outerRy, inner2, innerRx, innerRy, p)
         }
     }
 
@@ -359,7 +362,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawLine(startX, startY, stopX, stopY, p)
+            super.drawLine(startX, startY, stopX, stopY, p)
         }
     }
 
@@ -378,7 +381,7 @@ internal class CanvasRecorder internal constructor(
         val pts2 = pts.clone()
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawLines(pts2, p)
+            super.drawLines(pts2, p)
         }
     }
 
@@ -397,7 +400,7 @@ internal class CanvasRecorder internal constructor(
         val pts2 = pts.clone()
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawLines(pts2, offset, count, p)
+            super.drawLines(pts2, offset, count, p)
         }
     }
 
@@ -408,7 +411,7 @@ internal class CanvasRecorder internal constructor(
         val oval2 = RectF(oval)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawOval(oval2, p)
+            super.drawOval(oval2, p)
         }
     }
 
@@ -418,7 +421,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawOval(left, top, right, bottom, p)
+            super.drawOval(left, top, right, bottom, p)
         }
     }
 
@@ -432,7 +435,7 @@ internal class CanvasRecorder internal constructor(
         }
         val p = Paint(paint)
         records += RecordEntry(bounds) {
-            drawPaint(p)
+            super.drawPaint(p)
         }
     }
 
@@ -447,7 +450,7 @@ internal class CanvasRecorder internal constructor(
         val path2 = Path(path)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawPath(path2, p)
+            super.drawPath(path2, p)
         }
     }
 
@@ -455,7 +458,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(0f, 0f, picture.width.toFloat(), picture.height.toFloat())
         if (!currentLayer.getVisibleBounds(tempRect)) return
         records += RecordEntry(RectF(tempRect)) {
-            drawPicture(picture)
+            super.drawPicture(picture)
         }
     }
 
@@ -464,7 +467,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val dst2 = Rect(dst)
         records += RecordEntry(RectF(tempRect)) {
-            drawPicture(picture, dst2)
+            super.drawPicture(picture, dst2)
         }
     }
 
@@ -473,7 +476,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val dst2 = RectF(dst)
         records += RecordEntry(RectF(tempRect)) {
-            drawPicture(picture, dst2)
+            super.drawPicture(picture, dst2)
         }
     }
 
@@ -484,16 +487,12 @@ internal class CanvasRecorder internal constructor(
             removeRedundantRecords(bounds)
         }
         records += RecordEntry(bounds) {
-            drawColor(color)
+            super.drawColor(color)
         }
     }
 
     override fun isHardwareAccelerated(): Boolean {
         return false
-    }
-
-    override fun setBitmap(bitmap: Bitmap?) {
-        throw UnsupportedOperationException()
     }
 
     override fun enableZ() {
@@ -514,18 +513,10 @@ internal class CanvasRecorder internal constructor(
         return canvasHeight
     }
 
-    override fun getDensity(): Int {
-        return density
-    }
-
-    override fun setDensity(density: Int) {
-        this.density = density
-    }
-
     override fun save(): Int {
         val layer = newLayer()
         records += RecordEntry {
-            layer.actualLayerIndex = save()
+            layer.actualLayerIndex = super.save()
         }
         return layer.index
     }
@@ -536,7 +527,7 @@ internal class CanvasRecorder internal constructor(
         bounds2?.let { layer.clip(it, Region.Op.INTERSECT) }
         val p = paint?.let { Paint(it) }
         records += RecordEntry {
-            layer.actualLayerIndex = saveLayer(bounds2, p)
+            layer.actualLayerIndex = super.saveLayer(bounds2, p)
         }
         return layer.index
     }
@@ -553,7 +544,7 @@ internal class CanvasRecorder internal constructor(
         layer.clip(tempRect, Region.Op.INTERSECT)
         val p = paint?.let { Paint(it) }
         records += RecordEntry {
-            layer.actualLayerIndex = saveLayer(left, top, right, bottom, p)
+            layer.actualLayerIndex = super.saveLayer(left, top, right, bottom, p)
         }
         return layer.index
     }
@@ -563,7 +554,7 @@ internal class CanvasRecorder internal constructor(
         val bounds2 = bounds?.let { RectF(it) }
         bounds2?.let { layer.clip(it, Region.Op.INTERSECT) }
         records += RecordEntry {
-            layer.actualLayerIndex = saveLayerAlpha(bounds2, alpha)
+            layer.actualLayerIndex = super.saveLayerAlpha(bounds2, alpha)
         }
         return layer.index
     }
@@ -579,7 +570,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(left, top, right, bottom)
         layer.clip(tempRect, Region.Op.INTERSECT)
         records += RecordEntry {
-            layer.actualLayerIndex = saveLayerAlpha(left, top, right, bottom, alpha)
+            layer.actualLayerIndex = super.saveLayerAlpha(left, top, right, bottom, alpha)
         }
         return layer.index
     }
@@ -587,7 +578,7 @@ internal class CanvasRecorder internal constructor(
     override fun restore() {
         records += RecordEntry {
             popLayer()?.actualLayerIndex?.let {
-                restoreToCount(it)
+                super.restoreToCount(it)
             }
         }
     }
@@ -598,7 +589,7 @@ internal class CanvasRecorder internal constructor(
 
     override fun restoreToCount(saveCount: Int) {
         records += RecordEntry {
-            popLayersTo(saveCount)?.actualLayerIndex?.let { restoreToCount(it) }
+            popLayersTo(saveCount)?.actualLayerIndex?.let { super.restoreToCount(it) }
         }
     }
 
@@ -606,7 +597,7 @@ internal class CanvasRecorder internal constructor(
         if (dx == 0f && dy == 0f) return
         currentLayer.updateMatrix { postTranslate(dx, dy) }
         records += RecordEntry {
-            translate(dx, dy)
+            super.translate(dx, dy)
         }
     }
 
@@ -614,7 +605,7 @@ internal class CanvasRecorder internal constructor(
         if (sx == 1f && sy == 1f) return
         currentLayer.updateMatrix { postScale(sx, sy) }
         records += RecordEntry {
-            scale(sx, sy)
+            super.scale(sx, sy)
         }
     }
 
@@ -622,14 +613,14 @@ internal class CanvasRecorder internal constructor(
         if (degrees % 360f == 0f) return
         currentLayer.updateMatrix { postRotate(degrees) }
         records += RecordEntry {
-            rotate(degrees)
+            super.rotate(degrees)
         }
     }
 
     override fun skew(sx: Float, sy: Float) {
         currentLayer.updateMatrix { postSkew(sx, sy) }
         records += RecordEntry {
-            skew(sx, sy)
+            super.skew(sx, sy)
         }
     }
 
@@ -638,7 +629,7 @@ internal class CanvasRecorder internal constructor(
         val m = Matrix(matrix)
         currentLayer.updateMatrix { postConcat(m) }
         records += RecordEntry {
-            concat(m)
+            super.concat(m)
         }
     }
 
@@ -646,7 +637,7 @@ internal class CanvasRecorder internal constructor(
         val m = matrix?.let { Matrix(it) }
         currentLayer.updateMatrix { set(m) }
         records += RecordEntry {
-            setMatrix(m)
+            super.setMatrix(m)
         }
     }
 
@@ -654,16 +645,17 @@ internal class CanvasRecorder internal constructor(
         val rect2 = RectF(rect)
         val result = currentLayer.clip(rect2, Region.Op.INTERSECT)
         records += RecordEntry {
-            clipRect(rect2)
+            super.clipRect(rect2)
         }
         return result
     }
 
     override fun clipRect(rect: Rect): Boolean {
-        val rect2 = RectF(rect)
-        val result = currentLayer.clip(rect2, Region.Op.INTERSECT)
+        tempRect.set(rect)
+        val result = currentLayer.clip(tempRect, Region.Op.INTERSECT)
+        val rect2 = Rect(rect)
         records += RecordEntry {
-            clipRect(rect2)
+            super.clipRect(rect2)
         }
         return result
     }
@@ -678,7 +670,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(left, top, right, bottom)
         val result = currentLayer.clip(tempRect, op)
         records += RecordEntry {
-            clipRect(left, top, right, bottom, op)
+            super.clipRect(left, top, right, bottom, op)
         }
         return result
     }
@@ -687,7 +679,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(left, top, right, bottom)
         val result = currentLayer.clip(tempRect, Region.Op.INTERSECT)
         records += RecordEntry {
-            clipRect(left, top, right, bottom)
+            super.clipRect(left, top, right, bottom)
         }
         return result
     }
@@ -696,7 +688,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
         val result = currentLayer.clip(tempRect, Region.Op.INTERSECT)
         records += RecordEntry {
-            clipRect(left, top, right, bottom)
+            super.clipRect(left, top, right, bottom)
         }
         return result
     }
@@ -705,7 +697,7 @@ internal class CanvasRecorder internal constructor(
         val rect2 = RectF(rect)
         val result = currentLayer.clip(rect2, Region.Op.DIFFERENCE)
         records += RecordEntry {
-            clipRect(rect2)
+            super.clipRect(rect2)
         }
         return result
     }
@@ -714,7 +706,7 @@ internal class CanvasRecorder internal constructor(
         val rect2 = RectF(rect)
         val result = currentLayer.clip(rect2, Region.Op.DIFFERENCE)
         records += RecordEntry {
-            clipRect(rect2)
+            super.clipRect(rect2)
         }
         return result
     }
@@ -723,7 +715,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(left, top, right, bottom)
         val result = currentLayer.clip(tempRect, Region.Op.DIFFERENCE)
         records += RecordEntry {
-            clipRect(left, top, right, bottom)
+            super.clipRect(left, top, right, bottom)
         }
         return result
     }
@@ -732,7 +724,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
         val result = currentLayer.clip(tempRect, Region.Op.DIFFERENCE)
         records += RecordEntry {
-            clipRect(left, top, right, bottom)
+            super.clipRect(left, top, right, bottom)
         }
         return result
     }
@@ -742,7 +734,7 @@ internal class CanvasRecorder internal constructor(
         val result = currentLayer.clip(tempPath, op)
         val path2 = Path(path)
         records += RecordEntry {
-            clipPath(path2, op)
+            super.clipPath(path2, op)
         }
         return result
     }
@@ -752,7 +744,7 @@ internal class CanvasRecorder internal constructor(
         val result = currentLayer.clip(tempPath, Region.Op.INTERSECT)
         val path2 = Path(path)
         records += RecordEntry {
-            clipPath(path2)
+            super.clipPath(path2)
         }
         return result
     }
@@ -762,7 +754,7 @@ internal class CanvasRecorder internal constructor(
         val result = currentLayer.clip(tempPath, Region.Op.DIFFERENCE)
         val path2 = Path(path)
         records += RecordEntry {
-            clipPath(path2)
+            super.clipPath(path2)
         }
         return result
     }
@@ -774,7 +766,7 @@ internal class CanvasRecorder internal constructor(
     override fun setDrawFilter(filter: DrawFilter?) {
         drawFilter = filter
         records += RecordEntry {
-            drawFilter = filter
+            super.setDrawFilter(filter)
         }
     }
 
@@ -833,7 +825,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawPoint(x, y, p)
+            super.drawPoint(x, y, p)
         }
     }
 
@@ -853,7 +845,7 @@ internal class CanvasRecorder internal constructor(
         )
         val p = Paint(paint)
         records += RecordEntry(bounds) {
-            drawPoints(pts2, p)
+            super.drawPoints(pts2, p)
         }
     }
 
@@ -870,14 +862,14 @@ internal class CanvasRecorder internal constructor(
     ) {
         if (paint.alpha == 0) return
         records += RecordEntry {
-            drawPosText(text, index, count, pos, paint)
+            super.drawPosText(text, index, count, pos, paint)
         }
     }
 
     override fun drawPosText(text: String, pos: FloatArray, paint: Paint) {
         if (paint.alpha == 0) return
         records += RecordEntry {
-            drawPosText(text, pos, paint)
+            super.drawPosText(text, pos, paint)
         }
     }
 
@@ -891,7 +883,7 @@ internal class CanvasRecorder internal constructor(
         val rect2 = RectF(rect)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawRect(rect2, p)
+            super.drawRect(rect2, p)
         }
     }
 
@@ -905,7 +897,7 @@ internal class CanvasRecorder internal constructor(
         val rect2 = Rect(r)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawRect(rect2, p)
+            super.drawRect(rect2, p)
         }
     }
 
@@ -918,7 +910,7 @@ internal class CanvasRecorder internal constructor(
         }
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawRect(left, top, right, bottom, p)
+            super.drawRect(left, top, right, bottom, p)
         }
     }
 
@@ -926,7 +918,7 @@ internal class CanvasRecorder internal constructor(
         val bounds = currentClipBounds
         removeRedundantRecords(bounds)
         records += RecordEntry(bounds) {
-            drawRGB(r, g, b)
+            super.drawRGB(r, g, b)
         }
     }
 
@@ -937,7 +929,7 @@ internal class CanvasRecorder internal constructor(
         val rect2 = RectF(rect)
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawRoundRect(rect2, rx, ry, p)
+            super.drawRoundRect(rect2, rx, ry, p)
         }
     }
 
@@ -955,7 +947,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawRoundRect(left, top, right, bottom, rx, ry, p)
+            super.drawRoundRect(left, top, right, bottom, rx, ry, p)
         }
     }
 
@@ -975,7 +967,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawText(text, index, count, x, y, p)
+            super.drawText(text, index, count, x, y, p)
         }
     }
 
@@ -992,7 +984,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawText(text, start, end, x, y, p)
+            super.drawText(text, start, end, x, y, p)
         }
     }
 
@@ -1013,7 +1005,7 @@ internal class CanvasRecorder internal constructor(
         if (!currentLayer.getVisibleBounds(tempRect)) return
         val p = Paint(paint)
         records += RecordEntry(RectF(tempRect)) {
-            drawText(text, start, end, x, y, p)
+            super.drawText(text, start, end, x, y, p)
         }
     }
 
@@ -1030,7 +1022,7 @@ internal class CanvasRecorder internal constructor(
         val path2 = Path(path)
         val p = Paint(paint)
         records += RecordEntry {
-            drawTextOnPath(text, index, count, path2, hOffset, vOffset, p)
+            super.drawTextOnPath(text, index, count, path2, hOffset, vOffset, p)
         }
     }
 
@@ -1045,7 +1037,7 @@ internal class CanvasRecorder internal constructor(
         val path2 = Path(path)
         val p = Paint(paint)
         records += RecordEntry {
-            drawTextOnPath(text, path2, hOffset, vOffset, p)
+            super.drawTextOnPath(text, path2, hOffset, vOffset, p)
         }
     }
 
@@ -1063,7 +1055,7 @@ internal class CanvasRecorder internal constructor(
         if (paint.alpha == 0) return
         val p = Paint(paint)
         records += RecordEntry {
-            drawTextRun(text, index, count, contextIndex, contextCount, x, y, isRtl, p)
+            super.drawTextRun(text, index, count, contextIndex, contextCount, x, y, isRtl, p)
         }
     }
 
@@ -1081,7 +1073,7 @@ internal class CanvasRecorder internal constructor(
         if (paint.alpha == 0) return
         val p = Paint(paint)
         records += RecordEntry {
-            drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, p)
+            super.drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, p)
         }
     }
 
@@ -1099,7 +1091,7 @@ internal class CanvasRecorder internal constructor(
         if (paint.alpha == 0) return
         val p = Paint(paint)
         records += RecordEntry {
-            drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, p)
+            super.drawTextRun(text, start, end, contextStart, contextEnd, x, y, isRtl, p)
         }
     }
 
@@ -1124,7 +1116,7 @@ internal class CanvasRecorder internal constructor(
         val indices2 = indices?.clone()
         val p = Paint(paint)
         records += RecordEntry {
-            drawVertices(
+            super.drawVertices(
                 mode,
                 vertexCount,
                 verts2,
@@ -1147,7 +1139,7 @@ internal class CanvasRecorder internal constructor(
         tempRect.set(0f, 0f, renderNode.width.toFloat(), renderNode.height.toFloat())
         if (!currentLayer.getVisibleBounds(tempRect)) return
         records += RecordEntry(RectF(tempRect)) {
-            drawRenderNode(renderNode)
+            super.drawRenderNode(renderNode)
         }
     }
 
@@ -1170,7 +1162,7 @@ internal class CanvasRecorder internal constructor(
         }
         val p = paint?.let { Paint(it) }
         records += RecordEntry(RectF(tempRect)) {
-            drawBitmap(colors, offset, stride, x, y, width, height, hasAlpha, p)
+            super.drawBitmap(colors, offset, stride, x, y, width, height, hasAlpha, p)
         }
     }
 
@@ -1222,7 +1214,7 @@ internal class CanvasRecorder internal constructor(
         val rect2 = RectF(rect)
         val result = currentLayer.clip(rect2, op)
         records += RecordEntry {
-            clipRect(rect2, op)
+            super.clipRect(rect2, op)
         }
         return result
     }
@@ -1232,7 +1224,7 @@ internal class CanvasRecorder internal constructor(
         val result = currentLayer.clip(tempRect, op)
         val rect2 = Rect(rect)
         records += RecordEntry {
-            clipRect(rect2, op)
+            super.clipRect(rect2, op)
         }
         return result
     }

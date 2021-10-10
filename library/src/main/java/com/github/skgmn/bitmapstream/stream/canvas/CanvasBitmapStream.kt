@@ -14,7 +14,7 @@ internal class CanvasBitmapStream(
     private val scaleX: Float = 1f,
     private val scaleY: Float = 1f,
     private val mutable: Boolean? = null,
-    private val drawer: Canvas.() -> Unit
+    private val drawer: (Canvas) -> Unit
 ) : BitmapStream() {
     override val metadata = object : BitmapMetadata {
         override val width by lazy { (region.width() * scaleX).roundToInt() }
@@ -105,16 +105,17 @@ internal class CanvasBitmapStream(
     }
 
     override fun decode(): Bitmap? {
-        val canvasRecorder = CanvasRecorder(metadata.width, metadata.height)
-        canvasRecorder.translate(-region.left * scaleX, -region.top * scaleY)
-        canvasRecorder.scale(scaleX, scaleY)
-        canvasRecorder.clipRect(region)
-        with(canvasRecorder) { drawer() }
-        canvasRecorder.runDeferred()
-
         val bitmap = Bitmap.createBitmap(metadata.width, metadata.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvasRecorder.drawTo(canvas)
+
+        val canvasOptimizer = CanvasOptimizer(bitmap, metadata.width, metadata.height)
+        canvasOptimizer.translate(-region.left * scaleX, -region.top * scaleY)
+        canvasOptimizer.scale(scaleX, scaleY)
+        canvasOptimizer.clipRect(region)
+        canvasOptimizer.flush()
+
+        drawer(canvasOptimizer)
+        canvasOptimizer.runDeferred()
+        canvasOptimizer.flush()
 
         return bitmap
     }

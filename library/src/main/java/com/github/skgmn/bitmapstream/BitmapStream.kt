@@ -56,15 +56,15 @@ abstract class BitmapStream {
             ImageView.ScaleType.CENTER_CROP -> CenterCropFrameMethod()
             else -> throw IllegalArgumentException()
         }
-        return CanvasBitmapStream(frameWidth, frameHeight) {
+        return CanvasBitmapStream(frameWidth, frameHeight) { canvas ->
             background?.let {
                 it.setBounds(0, 0, frameWidth, frameHeight)
-                it.draw(this)
+                it.draw(canvas)
             }
             val srcRect = Rect()
             val destRect = Rect()
             frameMethod.computeBounds(metadata, frameWidth, frameHeight, srcRect, destRect)
-            drawStream(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
+            canvas.drawStream(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
         }
     }
 
@@ -111,38 +111,46 @@ abstract class BitmapStream {
 
     companion object {
         @JvmStatic
-        fun fromAsset(assetManager: AssetManager, path: String): BitmapStream {
+        fun create(assetManager: AssetManager, path: String): BitmapStream {
             return FactorySourceBitmapStream(AssetBitmapSource(assetManager, path))
         }
 
         @JvmStatic
-        fun fromByteArray(array: ByteArray): BitmapStream {
-            return fromByteArray(array, 0, array.size)
+        fun create(array: ByteArray): BitmapStream {
+            return create(array, 0, array.size)
         }
 
         @JvmStatic
-        fun fromByteArray(array: ByteArray, offset: Int, length: Int): BitmapStream {
+        fun create(array: ByteArray, offset: Int, length: Int): BitmapStream {
             return FactorySourceBitmapStream(ByteArrayBitmapSource(array, offset, length))
         }
 
         @JvmStatic
-        fun fromFile(file: File): BitmapStream {
+        fun create(file: File): BitmapStream {
             return FactorySourceBitmapStream(FileBitmapSource(file))
         }
 
         @JvmStatic
-        fun fromResource(res: Resources, @DrawableRes id: Int): BitmapStream {
+        fun create(res: Resources, @DrawableRes id: Int): BitmapStream {
             return FactorySourceBitmapStream(ResourceBitmapSource(res, id))
         }
 
         @JvmStatic
-        fun fromInputStream(inputStream: InputStream): BitmapStream {
+        fun create(inputStream: InputStream): BitmapStream {
             return FactorySourceBitmapStream(InputStreamBitmapSource(inputStream))
         }
 
         @JvmStatic
-        fun fromInputStreamFactory(inputStreamFactory: InputStreamFactory): BitmapStream {
+        fun create(inputStreamFactory: InputStreamFactory): BitmapStream {
             return FactorySourceBitmapStream(InputStreamFactoryBitmapSource(inputStreamFactory))
+        }
+
+        @JvmStatic
+        fun create(d: Drawable): BitmapStream {
+            return CanvasBitmapStream(d.intrinsicWidth, d.intrinsicHeight) {
+                d.setBounds(0, 0, d.intrinsicWidth, d.intrinsicHeight)
+                d.draw(it)
+            }
         }
     }
 }
