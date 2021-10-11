@@ -17,17 +17,6 @@ internal class BitmapDrawer(
     private val scaleY: Float
 ) : DrawScope {
     private val records = mutableListOf<RecordEntry<*>>()
-    private val matrix by lazy {
-        Matrix().apply {
-            postTranslate(-regionLeft * scaleX, -regionTop * scaleY)
-            postScale(scaleX, scaleY)
-        }
-    }
-    private val invertedMatrix by lazy {
-        Matrix().also {
-            matrix.invert(it)
-        }
-    }
     private val scaledRegion by lazy(LazyThreadSafetyMode.NONE) {
         Rect(
             (regionLeft * scaleX).roundToInt(),
@@ -37,7 +26,6 @@ internal class BitmapDrawer(
         )
     }
     private val tempRect by lazy(LazyThreadSafetyMode.NONE) { Rect() }
-    private val mapBuffer by lazy(LazyThreadSafetyMode.NONE) { RectF() }
 
     override fun draw(
         d: Drawable,
@@ -110,7 +98,7 @@ internal class BitmapDrawer(
         if (!getFinalBounds(tempRect)) return
 
         val finalBounds = Rect(tempRect)
-        val destRegionBounds = invertToSourceBounds(Rect(tempRect))
+        val destRegionBounds = unscaleBounds(Rect(finalBounds))
 
         val p = paint?.let { Paint(it) }
         val scaleX = (destRight - destLeft).toFloat() / stream.metadata.width
@@ -134,23 +122,24 @@ internal class BitmapDrawer(
                     }
             },
             drawer = { canvas, bitmap ->
-                tempRect.set(destLeft, destTop, destRight, destBottom)
-                canvas.drawBitmap(bitmap, null, tempRect, p)
+                canvas.drawBitmap(bitmap, null, destRegionBounds, p)
             }
         )
     }
 
     private fun getFinalBounds(bounds: Rect): Boolean {
-        mapBuffer.set(bounds)
-        matrix.mapRect(mapBuffer)
-        bounds.set(mapBuffer)
+        bounds.left = (bounds.left * scaleX).roundToInt()
+        bounds.top = (bounds.top * scaleY).roundToInt()
+        bounds.right = (bounds.right * scaleX).roundToInt()
+        bounds.bottom = (bounds.bottom * scaleY).roundToInt()
         return bounds.intersect(scaledRegion)
     }
 
-    private fun invertToSourceBounds(bounds: Rect): Rect {
-        mapBuffer.set(bounds)
-        invertedMatrix.mapRect(mapBuffer)
-        bounds.set(mapBuffer)
+    private fun unscaleBounds(bounds: Rect): Rect {
+        bounds.left = (bounds.left / scaleX).roundToInt()
+        bounds.top = (bounds.top / scaleY).roundToInt()
+        bounds.right = (bounds.right / scaleX).roundToInt()
+        bounds.bottom = (bounds.bottom / scaleY).roundToInt()
         return bounds
     }
 
@@ -167,7 +156,8 @@ internal class BitmapDrawer(
             Bitmap.Config.ARGB_8888
         )
         val canvas = Canvas(bitmap)
-        canvas.setMatrix(matrix)
+        canvas.translate(-regionLeft * scaleX, -regionTop * scaleY)
+        canvas.scale(scaleX, scaleY)
 
         val newRecords = mutableListOf<RecordEntry<Any>>()
         while (records.isNotEmpty()) {

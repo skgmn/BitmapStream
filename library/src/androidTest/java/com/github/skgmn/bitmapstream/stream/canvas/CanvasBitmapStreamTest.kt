@@ -122,4 +122,39 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
         assertSimilar(byFactory, assertNotNull(byDecoder))
     }
+
+    @Test
+    fun regionScaleCanvasRegionScaleByRegion() {
+        var expected = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
+        var imageBitmap = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        imageBitmap = Bitmap.createBitmap(imageBitmap, 110, 111, 112, 113)
+        imageBitmap = Bitmap.createScaledBitmap(imageBitmap, 200, 250, true)
+        Canvas(expected).run {
+            drawColor(Color.BLUE)
+            drawBitmap(imageBitmap, -40f, -50f, null)
+        }
+        expected = Bitmap.createBitmap(expected, 100, 10, 200, 280, null, true)
+        expected = Bitmap.createScaledBitmap(expected, 180, 192, true)
+        expected = Bitmap.createBitmap(expected, 10, 20, 150, 150, null, true)
+
+        val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
+        val imageStream = spyk(
+            FactorySourceBitmapStream(source)
+                .region(110, 111, 110 + 112, 111 + 113)
+                .scaleTo(200, 250)
+        )
+        val stream = CanvasBitmapStream(400, 300) {
+            draw(ColorDrawable(Color.BLUE))
+            draw(imageStream, -40, -50, null)
+        }
+        val actual = assertNotNull(
+            stream
+                .region(100, 10, 300, 290)
+                .scaleTo(180, 192)
+                .region(10, 20, 160, 170)
+                .decode()
+        )
+
+        assertSimilar(expected, actual)
+    }
 }
