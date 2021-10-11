@@ -28,7 +28,7 @@ class ResourceTest : BitmapTestBase() {
             val region = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
             val byFactory = region
 
-            val stream = BitmapStream.fromResource(res, id)
+            val stream = BitmapStream.create(res, id)
                 .region(left, top, right, bottom)
             assertEquals(byFactory.width, stream.metadata.width)
             assertEquals(byFactory.height, stream.metadata.height)

@@ -1,8 +1,7 @@
 package com.github.skgmn.bitmapstream
 
 internal open class DecodingState {
-    open fun setPhase(phase: Int) {
-    }
+    open fun setPhase(phase: Int) = Unit
 
     companion object {
         const val PHASE_METADATA = 0

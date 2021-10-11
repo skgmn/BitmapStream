@@ -75,7 +75,7 @@ abstract class BitmapTestBase {
         Utils.bitmapToMat(expected, img1)
         Utils.bitmapToMat(actual, img2)
         val mssim = getMssim(img1, img2)
-        if (mssim >= 0.985) {
+        if (mssim >= 0.983) {
             return
         }
 
