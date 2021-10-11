@@ -107,15 +107,15 @@ internal class CanvasBitmapStream(
     override fun decode(): Bitmap? {
         val bitmap = Bitmap.createBitmap(metadata.width, metadata.height, Bitmap.Config.ARGB_8888)
 
-        val canvasOptimizer = CanvasOptimizer(bitmap, metadata.width, metadata.height)
-        canvasOptimizer.translate(-region.left * scaleX, -region.top * scaleY)
-        canvasOptimizer.scale(scaleX, scaleY)
-        canvasOptimizer.clipRect(region)
-        canvasOptimizer.flush()
+        val optimizedCanvas = OptimizedCanvas(bitmap)
+        optimizedCanvas.translate(-region.left * scaleX, -region.top * scaleY)
+        optimizedCanvas.scale(scaleX, scaleY)
+        optimizedCanvas.clipRect(region)
+        optimizedCanvas.flush()
 
-        drawer(canvasOptimizer)
-        canvasOptimizer.runDeferred()
-        canvasOptimizer.flush()
+        drawer(optimizedCanvas)
+        optimizedCanvas.runDeferred()
+        optimizedCanvas.flush()
 
         return bitmap
     }

@@ -12,13 +12,11 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 @Suppress("DEPRECATION", "UNCHECKED_CAST")
-internal class CanvasOptimizer internal constructor(
-    bitmap: Bitmap,
-    private val canvasWidth: Int,
-    private val canvasHeight: Int
-) : Canvas() {
+internal class OptimizedCanvas internal constructor(private val bitmap: Bitmap) : Canvas() {
     private val records = mutableListOf<RecordEntry<*>>()
-    private val layers = mutableListOf(SimulatedLayer(0, Region(0, 0, canvasWidth, canvasHeight)))
+    private val layers = mutableListOf(
+        SimulatedLayer(0, Region(0, 0, bitmap.width, bitmap.height))
+    )
     private var drawFilter: DrawFilter? = null
     private val tempRect by lazy(LazyThreadSafetyMode.NONE) { RectF() }
     private val tempPath by lazy(LazyThreadSafetyMode.NONE) { Path() }
@@ -506,11 +504,11 @@ internal class CanvasOptimizer internal constructor(
     }
 
     override fun getWidth(): Int {
-        return canvasWidth
+        return bitmap.width
     }
 
     override fun getHeight(): Int {
-        return canvasHeight
+        return bitmap.height
     }
 
     override fun save(): Int {
