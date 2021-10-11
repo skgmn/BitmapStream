@@ -35,8 +35,8 @@ class FrameTest : BitmapTestBase() {
     fun centerCrop() {
         val res = appContext.resources
         val source = BitmapFactory.decodeResource(res, R.drawable.nodpi_image)
-        val frame = Bitmap.createBitmap(288, 288, Bitmap.Config.ARGB_8888)
-        Canvas(frame).run {
+        val expected = Bitmap.createBitmap(288, 288, Bitmap.Config.ARGB_8888)
+        Canvas(expected).run {
             drawColor(Color.RED)
             drawBitmap(
                 source,
@@ -45,18 +45,20 @@ class FrameTest : BitmapTestBase() {
                 Paint(Paint.FILTER_BITMAP_FLAG)
             )
         }
-        val byFactory = frame
 
         val bitmapSource = spyk(ResourceBitmapSource(res, R.drawable.nodpi_image))
         val sourceStream = FactorySourceBitmapStream(bitmapSource)
-        val frameStream =
-            sourceStream.frame(288, 288, ImageView.ScaleType.CENTER_CROP, ColorDrawable(Color.RED))
-        val byDecoder = assertNotNull(frameStream.decode())
+        val background = spyk(ColorDrawable(Color.RED))
+        val frameStream = sourceStream.frame(288, 288, ImageView.ScaleType.CENTER_CROP, background)
+        val actual = assertNotNull(frameStream.decode())
 
         verify {
             bitmapSource.decodeBitmapRegion(Rect(120, 0, 480, 360), any())
         }
-        assertSimilar(byFactory, byDecoder)
+        verify(exactly = 0) {
+            background.draw(any())
+        }
+        assertSimilar(expected, actual)
     }
 
     @Test

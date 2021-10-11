@@ -13,7 +13,6 @@ import com.github.skgmn.bitmapstream.frame.*
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.factory.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
-import com.github.skgmn.bitmapstream.stream.canvas.drawStream
 import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
 import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import java.io.File
@@ -56,15 +55,14 @@ abstract class BitmapStream {
             ImageView.ScaleType.CENTER_CROP -> CenterCropFrameMethod()
             else -> throw IllegalArgumentException()
         }
-        return CanvasBitmapStream(frameWidth, frameHeight) { canvas ->
+        return CanvasBitmapStream(frameWidth, frameHeight) {
             background?.let {
-                it.setBounds(0, 0, frameWidth, frameHeight)
-                it.draw(canvas)
+                draw(it, 0, 0, frameWidth, frameHeight)
             }
             val srcRect = Rect()
             val destRect = Rect()
             frameMethod.computeBounds(metadata, frameWidth, frameHeight, srcRect, destRect)
-            canvas.drawStream(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
+            draw(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
         }
     }
 
@@ -148,8 +146,7 @@ abstract class BitmapStream {
         @JvmStatic
         fun create(d: Drawable): BitmapStream {
             return CanvasBitmapStream(d.intrinsicWidth, d.intrinsicHeight) {
-                d.setBounds(0, 0, d.intrinsicWidth, d.intrinsicHeight)
-                d.draw(it)
+                draw(d)
             }
         }
     }

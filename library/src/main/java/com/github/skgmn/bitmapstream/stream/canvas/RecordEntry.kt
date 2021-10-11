@@ -1,19 +1,20 @@
 package com.github.skgmn.bitmapstream.stream.canvas
 
-import android.graphics.RectF
+import android.graphics.Canvas
+import android.graphics.Rect
 
 private val unitLazy = lazy(LazyThreadSafetyMode.NONE) { }
 
 internal class RecordEntry<T : Any>(
-    val bounds: RectF?,
+    val bounds: Rect?,
     val deferred: Lazy<T?>,
-    val drawer: (T) -> Unit
+    val drawer: (Canvas, T) -> Unit
 )
 
-internal fun RecordEntry(drawer: (Unit) -> Unit) = RecordEntry(
+internal fun RecordEntry(drawer: (Canvas, Unit) -> Unit) = RecordEntry(
     null, unitLazy, drawer
 )
 
-internal fun RecordEntry(bounds: RectF, drawer: (Unit) -> Unit) = RecordEntry(
+internal fun RecordEntry(bounds: Rect, drawer: (Canvas, Unit) -> Unit) = RecordEntry(
     bounds, unitLazy, drawer
 )

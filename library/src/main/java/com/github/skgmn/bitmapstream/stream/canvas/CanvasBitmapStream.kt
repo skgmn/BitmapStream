@@ -1,8 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.canvas
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
@@ -10,15 +8,25 @@ import kotlin.math.roundToInt
 internal class CanvasBitmapStream(
     private val canvasWidth: Int,
     private val canvasHeight: Int,
-    private val region: Rect = Rect(0, 0, canvasWidth, canvasHeight),
+    private val regionLeft: Int = 0,
+    private val regionTop: Int = 0,
+    private val regionRight: Int = canvasWidth,
+    private val regionBottom: Int = canvasHeight,
     private val scaleX: Float = 1f,
     private val scaleY: Float = 1f,
     private val mutable: Boolean? = null,
-    private val drawer: (Canvas) -> Unit
+    private val draw: DrawScope.() -> Unit
 ) : BitmapStream() {
+    private val regionWidth get() = regionRight - regionLeft
+    private val regionHeight get() = regionBottom - regionTop
+
     override val metadata = object : BitmapMetadata {
-        override val width by lazy { (region.width() * scaleX).roundToInt() }
-        override val height by lazy { (region.height() * scaleY).roundToInt() }
+        override val width by lazy(LazyThreadSafetyMode.NONE) {
+            (regionWidth * scaleX).roundToInt()
+        }
+        override val height by lazy(LazyThreadSafetyMode.NONE) {
+            (regionHeight * scaleY).roundToInt()
+        }
         override val mimeType get() = "image/bmp"
         override val densityScale get() = 1f
     }
@@ -30,11 +38,14 @@ internal class CanvasBitmapStream(
             CanvasBitmapStream(
                 canvasWidth,
                 canvasHeight,
-                region,
-                width / region.width().toFloat(),
-                height / region.height().toFloat(),
+                regionLeft,
+                regionTop,
+                regionRight,
+                regionBottom,
+                width / regionWidth.toFloat(),
+                height / regionHeight.toFloat(),
                 mutable,
-                drawer
+                draw
             )
         }
     }
@@ -43,8 +54,19 @@ internal class CanvasBitmapStream(
         return if (width == metadata.width) {
             this
         } else {
-            val scaleX = width / region.width().toFloat()
-            CanvasBitmapStream(canvasWidth, canvasHeight, region, scaleX, scaleY, mutable, drawer)
+            val scale = width.toFloat() / metadata.width
+            CanvasBitmapStream(
+                canvasWidth,
+                canvasHeight,
+                regionLeft,
+                regionTop,
+                regionRight,
+                regionBottom,
+                scaleX * scale,
+                scaleY * scale,
+                mutable,
+                draw
+            )
         }
     }
 
@@ -52,8 +74,19 @@ internal class CanvasBitmapStream(
         return if (height == metadata.height) {
             this
         } else {
-            val scaleY = height / region.height().toFloat()
-            CanvasBitmapStream(canvasWidth, canvasHeight, region, scaleY, scaleY, mutable, drawer)
+            val scale = height.toFloat() / metadata.height
+            CanvasBitmapStream(
+                canvasWidth,
+                canvasHeight,
+                regionLeft,
+                regionTop,
+                regionRight,
+                regionBottom,
+                scaleX * scale,
+                scaleY * scale,
+                mutable,
+                draw
+            )
         }
     }
 
@@ -64,32 +97,33 @@ internal class CanvasBitmapStream(
             CanvasBitmapStream(
                 canvasWidth,
                 canvasHeight,
-                region,
+                regionLeft,
+                regionTop,
+                regionRight,
+                regionBottom,
                 scaleX * scaleWidth,
                 scaleY * scaleHeight,
                 mutable,
-                drawer
+                draw
             )
         }
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return if (left == 0 && top == 0 && right == region.width() && bottom == region.height()) {
+        return if (left == 0 && top == 0 && right == metadata.width && bottom == metadata.height) {
             this
         } else {
             CanvasBitmapStream(
                 canvasWidth,
                 canvasHeight,
-                Rect(
-                    region.left + (left / scaleX).roundToInt(),
-                    region.top + (top / scaleY).roundToInt(),
-                    region.left + (right / scaleX).roundToInt(),
-                    region.top + (bottom / scaleY).roundToInt()
-                ),
+                (regionLeft + left / scaleX).roundToInt(),
+                (regionTop + top / scaleY).roundToInt(),
+                (regionLeft + right / scaleX).roundToInt(),
+                (regionTop + bottom / scaleY).roundToInt(),
                 scaleX,
                 scaleY,
                 mutable,
-                drawer
+                draw
             )
         }
     }
@@ -99,24 +133,28 @@ internal class CanvasBitmapStream(
             this
         } else {
             CanvasBitmapStream(
-                canvasWidth, canvasHeight, region, scaleX, scaleY, mutable, drawer
+                canvasWidth,
+                canvasHeight,
+                regionLeft,
+                regionTop,
+                regionRight,
+                regionBottom,
+                scaleX,
+                scaleY,
+                mutable,
+                draw
             )
         }
     }
 
-    override fun decode(): Bitmap? {
-        val bitmap = Bitmap.createBitmap(metadata.width, metadata.height, Bitmap.Config.ARGB_8888)
-
-        val optimizedCanvas = OptimizedCanvas(bitmap)
-        optimizedCanvas.translate(-region.left * scaleX, -region.top * scaleY)
-        optimizedCanvas.scale(scaleX, scaleY)
-        optimizedCanvas.clipRect(region)
-        optimizedCanvas.flush()
-
-        drawer(optimizedCanvas)
-        optimizedCanvas.runDeferred()
-        optimizedCanvas.flush()
-
-        return bitmap
+    override fun decode(): Bitmap {
+        val drawer = BitmapDrawer(
+            canvasWidth,
+            canvasHeight,
+            regionLeft, regionTop, regionRight, regionBottom,
+            scaleX, scaleY
+        )
+        drawer.draw()
+        return drawer.makeBitmap()
     }
 }

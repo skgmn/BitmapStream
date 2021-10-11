@@ -1,6 +1,7 @@
 package com.github.skgmn.bitmapstream.stream.canvas
 
 import android.graphics.*
+import android.graphics.drawable.ColorDrawable
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
 import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
@@ -22,8 +23,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(FactorySourceBitmapStream(source))
         val canvas = CanvasBitmapStream(400, 300) {
-            it.drawColor(Color.BLACK)
-            it.drawStream(imageStream, 210f, 160f, null)
+            draw(ColorDrawable(Color.BLACK))
+            draw(imageStream, 210, 160, null)
         }
         val byDecoder = canvas.decode()
 
@@ -38,11 +39,11 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun regionScale() {
-        val byFactory = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
+        val expected = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
         var imageBitmap = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         imageBitmap = Bitmap.createBitmap(imageBitmap, 110, 111, 112, 113)
         imageBitmap = Bitmap.createScaledBitmap(imageBitmap, 200, 250, true)
-        Canvas(byFactory).run {
+        Canvas(expected).run {
             drawColor(Color.BLUE)
             drawBitmap(imageBitmap, -40f, -50f, null)
         }
@@ -54,10 +55,10 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
                 .scaleTo(200, 250)
         )
         val canvas = CanvasBitmapStream(400, 300) {
-            it.drawColor(Color.BLUE)
-            it.drawStream(imageStream, -40f, -50f, null)
+            draw(ColorDrawable(Color.BLUE))
+            draw(imageStream, -40, -50, null)
         }
-        val byDecoder = canvas.decode()
+        val actual = assertNotNull(canvas.decode())
 
         verify(exactly = 1) {
             imageStream.region(40, 50, 200, 250)
@@ -65,7 +66,7 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
         verify(exactly = 1) {
             source.decodeBitmapRegion(Rect(132, 134, 222, 224), any())
         }
-        assertSimilar(byFactory, assertNotNull(byDecoder))
+        assertSimilar(expected, actual)
     }
 
     @Test
@@ -87,8 +88,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
                 .scaleTo(200, 250)
         )
         val canvas = CanvasBitmapStream(400, 300) {
-            it.drawColor(Color.BLUE)
-            it.drawStream(imageStream, -40f, -50f, null)
+            draw(ColorDrawable(Color.BLUE))
+            draw(imageStream, -40, -50, null)
         }
         val byDecoder = canvas.scaleTo(123, 456).decode()
 
@@ -114,8 +115,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
                 .scaleTo(200, 250)
         )
         val canvas = CanvasBitmapStream(400, 300) {
-            it.drawColor(Color.BLUE)
-            it.drawStream(imageStream, -40f, -50f, null)
+            draw(ColorDrawable(Color.BLUE))
+            draw(imageStream, -40, -50, null)
         }
         val byDecoder = canvas.scaleBy(0.9f, 0.8f).decode()
 
