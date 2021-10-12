@@ -13,6 +13,7 @@ import com.github.skgmn.bitmapstream.frame.*
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
+import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
 import java.io.File
@@ -139,6 +140,11 @@ abstract class BitmapStream {
         @JvmStatic
         fun create(inputStreamFactory: InputStreamFactory): BitmapStream {
             return BitmapFactoryBitmapStream(InputStreamFactoryBitmapSource(inputStreamFactory))
+        }
+
+        @JvmStatic
+        fun create(bitmap: Bitmap): BitmapStream {
+            return InMemoryBitmapStream(bitmap)
         }
 
         @JvmStatic
