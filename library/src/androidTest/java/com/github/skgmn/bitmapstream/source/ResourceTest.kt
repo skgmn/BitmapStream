@@ -25,16 +25,16 @@ class ResourceTest : BitmapTestBase() {
             val top = 30
             val right = (left + 240).coerceAtMost(bitmap.width)
             val bottom = (top + 250).coerceAtMost(bitmap.height)
-            val region = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
-            val byFactory = region
+            val expected = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
 
             val stream = BitmapStream.create(res, id)
                 .region(left, top, right, bottom)
-            assertEquals(byFactory.width, stream.metadata.width)
-            assertEquals(byFactory.height, stream.metadata.height)
+            assertEquals(expected.width, stream.metadata.width)
+            assertEquals(expected.height, stream.metadata.height)
 
-            val byDecoder = assertNotNull(stream.decode())
-            assertSimilar(byFactory, byDecoder)
+            val actual = assertNotNull(stream.decode())
+            assertEquals(expected.density, actual.density)
+            assertSimilar(expected, actual)
         }
     }
 }
