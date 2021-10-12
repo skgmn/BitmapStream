@@ -7,10 +7,15 @@ internal class ScaleToBitmapStream(
     private val targetWidth: Double,
     private val targetHeight: Double
 ) : ScaleBitmapStream(other) {
-    override val scaleX get() = (targetWidth / other.metadata.width).toFloat()
-    override val scaleY get() = (targetHeight / other.metadata.height).toFloat()
+    override val scaleX by lazy(LazyThreadSafetyMode.NONE) {
+        (targetWidth / other.metadata.width).toFloat()
+    }
+    override val scaleY by lazy(LazyThreadSafetyMode.NONE) {
+        (targetHeight / other.metadata.height).toFloat()
+    }
     override val exactWidth get() = targetWidth
     override val exactHeight get() = targetHeight
+    override val hasMetadata get() = true
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return if (this.targetWidth == width.toDouble() && this.targetHeight == height.toDouble()) {

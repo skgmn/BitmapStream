@@ -7,9 +7,11 @@ internal class ScaleHeightBitmapStream(
     private val targetHeight: Double,
     private val widthScale: Float
 ) : ScaleBitmapStream(other) {
-    override val scaleX get() = scaleY * widthScale
-    override val scaleY get() = (targetHeight / other.exactHeight).toFloat()
-    override val exactWidth by lazy { other.exactWidth * scaleX }
+    override val scaleX by lazy(LazyThreadSafetyMode.NONE) { scaleY * widthScale }
+    override val scaleY by lazy(LazyThreadSafetyMode.NONE) {
+        (targetHeight / other.exactHeight).toFloat()
+    }
+    override val exactWidth by lazy(LazyThreadSafetyMode.NONE) { other.exactWidth * scaleX }
     override val exactHeight: Double get() = targetHeight
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
@@ -17,16 +19,18 @@ internal class ScaleHeightBitmapStream(
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return other.scaleWidth(width)
+        return if (widthScale == 1f) {
+            other.scaleWidth(width)
+        } else {
+            super.scaleWidth(width)
+        }
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (targetHeight == height.toDouble()) {
-            this
-        } else if (widthScale == 1f) {
-            other.scaleHeight(height)
-        } else {
-            ScaleHeightBitmapStream(other, height.toDouble(), widthScale)
+        return when {
+            targetHeight == height.toDouble() -> this
+            widthScale == 1f -> other.scaleHeight(height)
+            else -> ScaleHeightBitmapStream(other, height.toDouble(), widthScale)
         }
     }
 

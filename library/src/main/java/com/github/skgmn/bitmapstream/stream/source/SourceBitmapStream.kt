@@ -11,19 +11,35 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     internal open val exactWidth: Double get() = metadata.width.toDouble()
     internal open val exactHeight: Double get() = metadata.height.toDouble()
 
+    internal open val hasMetadata get() = false
+
     internal abstract fun buildInputParameters(features: StreamFeatures): InputParameters
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return ScaleToBitmapStream(this, width.toDouble(), height.toDouble())
+        return if (hasMetadata &&
+            width.toDouble() == exactWidth && height.toDouble() == exactHeight
+        ) {
+            this
+        } else {
+            ScaleToBitmapStream(this, width.toDouble(), height.toDouble())
+        }
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return ScaleWidthBitmapStream(this, width.toDouble(), 1f)
+        return if (hasMetadata && width.toDouble() == exactWidth) {
+            this
+        } else {
+            ScaleWidthBitmapStream(this, width.toDouble(), 1f)
+        }
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return ScaleHeightBitmapStream(this, height.toDouble(), 1f)
+        return if (hasMetadata && height.toDouble() == exactHeight) {
+            this
+        } else {
+            ScaleHeightBitmapStream(this, height.toDouble(), 1f)
+        }
     }
 
     override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
@@ -35,7 +51,12 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return RegionBitmapStream(this, left, top, right, bottom)
+        return if (hasMetadata && left == 0 && top == 0 &&
+            right.toDouble() == exactWidth && bottom.toDouble() == exactHeight) {
+            this
+        } else {
+            RegionBitmapStream(this, left, top, right, bottom)
+        }
     }
 
     override fun mutable(mutable: Boolean?): BitmapStream {

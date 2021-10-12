@@ -7,7 +7,7 @@ internal class InputParameters(
     var scaleX: Float = 1f,
     var scaleY: Float = 1f,
     var region: Rect? = null,
-    var mutable: Boolean = false,
+    var mutable: Boolean? = null,
     var downsampleOnly: Boolean = false
 ) {
     fun buildDecodingParameters(): DecodingParameters {
@@ -23,7 +23,7 @@ internal class InputParameters(
         }
         options.inSampleSize = sampleSize
 
-        options.inMutable = mutable
+        mutable?.let { options.inMutable = it }
 
         return DecodingParameters(
             options = options,

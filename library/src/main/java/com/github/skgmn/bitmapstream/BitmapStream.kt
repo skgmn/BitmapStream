@@ -92,10 +92,8 @@ abstract class BitmapStream {
         }
     }
 
-    internal fun setMutable(bitmap: Bitmap, mutable: Boolean): Bitmap {
-        if (bitmap.isMutable == mutable) {
-            return bitmap
-        }
+    internal fun setMutable(bitmap: Bitmap, mutable: Boolean?): Bitmap {
+        if (mutable == null || bitmap.isMutable == mutable) return bitmap
         if (mutable) {
             val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
             val paint = Paint(Paint.FILTER_BITMAP_FLAG)

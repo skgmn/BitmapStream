@@ -16,9 +16,7 @@ internal class MutableBitmapStream(
 
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
         return other.buildInputParameters(features).apply {
-            if (this@MutableBitmapStream.mutable != null) {
-                mutable = this@MutableBitmapStream.mutable
-            }
+            mutable = this@MutableBitmapStream.mutable
         }
     }
 }
