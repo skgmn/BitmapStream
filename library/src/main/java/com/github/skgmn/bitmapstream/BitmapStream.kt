@@ -14,7 +14,7 @@ import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.factory.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
-import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
+import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import java.io.File
 import java.io.InputStream
 import kotlin.math.roundToInt
@@ -108,7 +108,7 @@ abstract class BitmapStream {
     companion object {
         @JvmStatic
         fun create(assetManager: AssetManager, path: String): BitmapStream {
-            return FactorySourceBitmapStream(AssetBitmapSource(assetManager, path))
+            return BitmapFactoryBitmapStream(AssetBitmapSource(assetManager, path))
         }
 
         @JvmStatic
@@ -118,27 +118,27 @@ abstract class BitmapStream {
 
         @JvmStatic
         fun create(array: ByteArray, offset: Int, length: Int): BitmapStream {
-            return FactorySourceBitmapStream(ByteArrayBitmapSource(array, offset, length))
+            return BitmapFactoryBitmapStream(ByteArrayBitmapSource(array, offset, length))
         }
 
         @JvmStatic
         fun create(file: File): BitmapStream {
-            return FactorySourceBitmapStream(FileBitmapSource(file))
+            return BitmapFactoryBitmapStream(FileBitmapSource(file))
         }
 
         @JvmStatic
         fun create(res: Resources, @DrawableRes id: Int): BitmapStream {
-            return FactorySourceBitmapStream(ResourceBitmapSource(res, id))
+            return BitmapFactoryBitmapStream(ResourceBitmapSource(res, id))
         }
 
         @JvmStatic
         fun create(inputStream: InputStream): BitmapStream {
-            return FactorySourceBitmapStream(InputStreamBitmapSource(inputStream))
+            return BitmapFactoryBitmapStream(InputStreamBitmapSource(inputStream))
         }
 
         @JvmStatic
         fun create(inputStreamFactory: InputStreamFactory): BitmapStream {
-            return FactorySourceBitmapStream(InputStreamFactoryBitmapSource(inputStreamFactory))
+            return BitmapFactoryBitmapStream(InputStreamFactoryBitmapSource(inputStreamFactory))
         }
 
         @JvmStatic

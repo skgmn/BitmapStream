@@ -4,7 +4,7 @@ import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
-import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
+import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import io.mockk.spyk
 import io.mockk.verify
@@ -21,7 +21,7 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
         }
 
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
-        val imageStream = spyk(FactorySourceBitmapStream(source))
+        val imageStream = spyk(BitmapFactoryBitmapStream(source))
         val canvas = CanvasBitmapStream(400, 300) {
             draw(ColorDrawable(Color.BLACK))
             draw(imageStream, 210, 160, null)
@@ -50,7 +50,7 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(
-            FactorySourceBitmapStream(source)
+            BitmapFactoryBitmapStream(source)
                 .region(110, 111, 110 + 112, 111 + 113)
                 .scaleTo(200, 250)
         )
@@ -83,7 +83,7 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(
-            FactorySourceBitmapStream(source)
+            BitmapFactoryBitmapStream(source)
                 .region(110, 111, 110 + 112, 111 + 113)
                 .scaleTo(200, 250)
         )
@@ -110,7 +110,7 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(
-            FactorySourceBitmapStream(source)
+            BitmapFactoryBitmapStream(source)
                 .region(110, 111, 110 + 112, 111 + 113)
                 .scaleTo(200, 250)
         )
@@ -139,7 +139,7 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
         val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(
-            FactorySourceBitmapStream(source)
+            BitmapFactoryBitmapStream(source)
                 .region(110, 111, 110 + 112, 111 + 113)
                 .scaleTo(200, 250)
         )

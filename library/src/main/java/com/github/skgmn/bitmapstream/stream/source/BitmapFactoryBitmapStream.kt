@@ -1,4 +1,4 @@
-package com.github.skgmn.bitmapstream.stream.source.factory
+package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.DecodingState
@@ -7,12 +7,9 @@ import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.FactorySourceBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
 import com.github.skgmn.bitmapstream.source.factory.BitmapFactorySource
-import com.github.skgmn.bitmapstream.stream.source.InputParameters
-import com.github.skgmn.bitmapstream.stream.source.SourceBitmapStream
-import com.github.skgmn.bitmapstream.stream.source.StreamFeatures
 import java.util.concurrent.atomic.AtomicReference
 
-internal class FactorySourceBitmapStream(
+internal class BitmapFactoryBitmapStream(
     private val source: BitmapFactorySource
 ) : SourceBitmapStream() {
     private val statefulMetadata = object : AtomicReference<BitmapMetadata>(), BitmapMetadata {

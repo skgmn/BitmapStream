@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.factory.*
-import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -15,7 +14,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 @RunWith(AndroidJUnit4::class)
-class FactorySourceBitmapStreamTest : BitmapTestBase() {
+class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
     @Test
     fun decodeResource() {
         val byFactory = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
@@ -24,7 +23,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
         val byDecoder = assertNotNull(decoder.decode())
 
         assertSimilar(byDecoder, byFactory)
@@ -38,7 +37,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
 
         assertEquals(decoder.metadata.width, byFactory.width)
         assertEquals(decoder.metadata.height, byFactory.height)
@@ -66,7 +65,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
                 it
             )
             val decoder =
-                FactorySourceBitmapStream(source)
+                BitmapFactoryBitmapStream(source)
             val byDecoder = assertNotNull(decoder.decode())
 
             assertSimilar(byDecoder, byFactory)
@@ -88,7 +87,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
             0,
             data.size
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
         val byDecoder = assertNotNull(decoder.decode())
 
         assertSimilar(byDecoder, byFactoryFromByteArray)
@@ -109,7 +108,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
             0,
             data.size
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
         assertEquals(decoder.metadata.width, byFactoryFromByteArray.width)
         assertEquals(decoder.metadata.height, byFactoryFromByteArray.height)
         assertEquals(decoder.metadata.mimeType, "image/png")
@@ -129,7 +128,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
         val byFactoryFromFile = BitmapFactory.decodeFile(file.path)
 
         val source = FileBitmapSource(file)
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
         val byDecoder = assertNotNull(decoder.decode())
 
         assertSimilar(byDecoder, byFactoryFromFile)
@@ -146,7 +145,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
         val byFactoryFromFile = BitmapFactory.decodeFile(file.path)
 
         val source = FileBitmapSource(file)
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
         assertEquals(decoder.metadata.width, byFactoryFromFile.width)
         assertEquals(decoder.metadata.height, byFactoryFromFile.height)
         assertEquals(decoder.metadata.mimeType, "image/png")
@@ -162,7 +161,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
         val source = InputStreamBitmapSource(
             appContext.resources.openRawResource(R.drawable.nodpi_image)
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
         val byDecoder = assertNotNull(decoder.decode())
 
         assertSimilar(byDecoder, byFactory)
@@ -175,7 +174,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
         val source = InputStreamBitmapSource(
             appContext.resources.openRawResource(R.drawable.nodpi_image)
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
 
         assertEquals(decoder.metadata.width, byFactory.width)
         assertEquals(decoder.metadata.height, byFactory.height)
@@ -194,7 +193,7 @@ class FactorySourceBitmapStreamTest : BitmapTestBase() {
             appContext.assets,
             "nodpi_image.jpg"
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
 
         assertEquals(decoder.metadata.width, byFactory.width)
         assertEquals(decoder.metadata.height, byFactory.height)

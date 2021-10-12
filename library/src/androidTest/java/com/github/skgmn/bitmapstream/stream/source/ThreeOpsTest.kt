@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
-import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -24,7 +23,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(100, 200)
             .scaleTo(300, 400)
             .scaleTo(500, 600)
@@ -47,7 +46,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(100, 200)
             .scaleTo(300, 400)
             .scaleBy(0.9f, 0.8f)
@@ -70,7 +69,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(100, 200)
             .scaleTo(300, 400)
             .region(110, 120, 110 + 130, 120 + 140)
@@ -92,7 +91,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(100, 199)
             .scaleWidth(133)
             .scaleBy(0.5f, 0.5f)
@@ -114,7 +113,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(100, 200)
             .scaleBy(0.9f, 0.8f)
             .scaleTo(300, 400)
@@ -136,7 +135,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(100, 200)
             .scaleBy(0.9f, 0.8f)
             .scaleBy(0.7f, 0.6f)
@@ -159,7 +158,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(300, 400)
             .scaleBy(0.9f, 0.8f)
             .region(100, 110, 100 + 120, 110 + 130)
@@ -183,7 +182,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(300, 400)
             .region(100, 110, 100 + 120, 110 + 130)
             .scaleTo(100, 200)
@@ -207,7 +206,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(300, 400)
             .region(100, 110, 100 + 120, 110 + 130)
             .scaleBy(0.9f, 0.8f)
@@ -231,7 +230,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleTo(300, 400)
             .region(100, 110, 100 + 120, 110 + 130)
             .region(10, 20, 10 + 30, 20 + 40)
@@ -255,7 +254,7 @@ class ThreeOpsTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleBy(0.9f, 0.8f)
             .region(100, 110, 100 + 120, 110 + 130)
             .scaleTo(140, 150)

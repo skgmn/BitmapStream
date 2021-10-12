@@ -9,7 +9,6 @@ import com.github.skgmn.bitmapstream.source.factory.ByteArrayBitmapSource
 import com.github.skgmn.bitmapstream.source.factory.FileBitmapSource
 import com.github.skgmn.bitmapstream.source.factory.InputStreamBitmapSource
 import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
-import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -30,7 +29,7 @@ class RegionTest : BitmapTestBase() {
             appContext.resources,
             R.drawable.nodpi_image
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .region(100, 110, 100 + 120, 110 + 130)
         assertEquals(decoder.metadata.width, byFactory.width)
         assertEquals(decoder.metadata.height, byFactory.height)
@@ -56,7 +55,7 @@ class RegionTest : BitmapTestBase() {
             )
 
             val source = ResourceBitmapSource(appContext.resources, it)
-            val decoder = FactorySourceBitmapStream(
+            val decoder = BitmapFactoryBitmapStream(
                 source
             ).region(12, 34, 12 + 56, 34 + 78)
             val byDecoder = assertNotNull(decoder.decode())
@@ -83,7 +82,7 @@ class RegionTest : BitmapTestBase() {
             0,
             data.size
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
         assertEquals(decoder.metadata.width, byFactoryFromByteArray.width)
         assertEquals(decoder.metadata.height, byFactoryFromByteArray.height)
@@ -106,7 +105,7 @@ class RegionTest : BitmapTestBase() {
         )
 
         val source = FileBitmapSource(file)
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
         assertEquals(decoder.metadata.width, byFactoryFromFile.width)
         assertEquals(decoder.metadata.height, byFactoryFromFile.height)
@@ -125,7 +124,7 @@ class RegionTest : BitmapTestBase() {
         val source = InputStreamBitmapSource(
             appContext.resources.openRawResource(R.drawable.nodpi_image)
         )
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
 
         assertEquals(decoder.metadata.width, byFactory.width)
@@ -146,7 +145,7 @@ class RegionTest : BitmapTestBase() {
         )
 
         val source = ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image)
-        val decoder = FactorySourceBitmapStream(source)
+        val decoder = BitmapFactoryBitmapStream(source)
             .scaleBy(2f, 3f)
             .region(100, 110, 100 + 120, 110 + 130)
         assertEquals(decoder.metadata.width, byFactory.width)

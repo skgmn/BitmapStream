@@ -4,7 +4,7 @@ import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.widget.ImageView
 import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
-import com.github.skgmn.bitmapstream.stream.source.factory.FactorySourceBitmapStream
+import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import io.mockk.spyk
 import io.mockk.verify
@@ -23,7 +23,7 @@ class FrameTest : BitmapTestBase() {
         val byFactory = frame
 
         val sourceStream =
-            FactorySourceBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
+            BitmapFactoryBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
         val frameStream =
             sourceStream.frame(200, 200, ImageView.ScaleType.FIT_CENTER, ColorDrawable(Color.RED))
         val byDecoder = assertNotNull(frameStream.decode())
@@ -47,7 +47,7 @@ class FrameTest : BitmapTestBase() {
         }
 
         val bitmapSource = spyk(ResourceBitmapSource(res, R.drawable.nodpi_image))
-        val sourceStream = FactorySourceBitmapStream(bitmapSource)
+        val sourceStream = BitmapFactoryBitmapStream(bitmapSource)
         val background = spyk(ColorDrawable(Color.RED))
         val frameStream = sourceStream.frame(288, 288, ImageView.ScaleType.CENTER_CROP, background)
         val actual = assertNotNull(frameStream.decode())
@@ -78,7 +78,7 @@ class FrameTest : BitmapTestBase() {
         val byFactory = frame
 
         val bitmapSource = spyk(ResourceBitmapSource(res, R.drawable.nodpi_image))
-        val sourceStream = FactorySourceBitmapStream(bitmapSource)
+        val sourceStream = BitmapFactoryBitmapStream(bitmapSource)
         val frameStream =
             sourceStream.frame(144, 144, ImageView.ScaleType.CENTER_CROP, ColorDrawable(Color.RED))
         val byDecoder = assertNotNull(frameStream.decode())
