@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
-import com.github.skgmn.bitmapstream.source.factory.*
+import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Assert.assertEquals
 import org.junit.Test

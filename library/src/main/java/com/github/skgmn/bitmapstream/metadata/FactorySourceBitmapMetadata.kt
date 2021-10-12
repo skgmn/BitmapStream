@@ -1,7 +1,7 @@
 package com.github.skgmn.bitmapstream.metadata
 
 import android.graphics.BitmapFactory
-import com.github.skgmn.bitmapstream.source.factory.BitmapFactorySource
+import com.github.skgmn.bitmapstream.source.BitmapFactorySource
 
 internal class FactorySourceBitmapMetadata(
     source: BitmapFactorySource

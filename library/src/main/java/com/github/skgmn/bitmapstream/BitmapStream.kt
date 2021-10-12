@@ -11,10 +11,10 @@ import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import com.github.skgmn.bitmapstream.frame.*
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
-import com.github.skgmn.bitmapstream.source.factory.*
+import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
-import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
+import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
 import java.io.File
 import java.io.InputStream
 import kotlin.math.roundToInt

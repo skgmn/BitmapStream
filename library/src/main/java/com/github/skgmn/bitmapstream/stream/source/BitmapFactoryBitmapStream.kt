@@ -6,7 +6,7 @@ import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.FactorySourceBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
-import com.github.skgmn.bitmapstream.source.factory.BitmapFactorySource
+import com.github.skgmn.bitmapstream.source.BitmapFactorySource
 import java.util.concurrent.atomic.AtomicReference
 
 internal class BitmapFactoryBitmapStream(

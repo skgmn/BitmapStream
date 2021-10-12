@@ -1,4 +1,4 @@
-package com.github.skgmn.bitmapstream.source.factory
+package com.github.skgmn.bitmapstream.source
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

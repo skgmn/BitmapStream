@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.canvas
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import com.github.skgmn.bitmapstream.BitmapTestBase
-import com.github.skgmn.bitmapstream.source.factory.ResourceBitmapSource
+import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import io.mockk.spyk
