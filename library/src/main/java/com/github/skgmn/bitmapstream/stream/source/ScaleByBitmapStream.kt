@@ -27,4 +27,8 @@ internal class ScaleByBitmapStream(
             }
         }
     }
+
+    override fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream {
+        return ScaleByBitmapStream(new, scaleX, scaleY)
+    }
 }

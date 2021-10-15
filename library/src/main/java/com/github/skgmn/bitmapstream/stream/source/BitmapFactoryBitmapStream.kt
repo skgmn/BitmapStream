@@ -7,6 +7,7 @@ import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.FactorySourceBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
 import com.github.skgmn.bitmapstream.source.BitmapFactorySource
+import com.github.skgmn.bitmapstream.util.mutable
 import java.util.concurrent.atomic.AtomicReference
 
 internal class BitmapFactoryBitmapStream(
@@ -56,10 +57,8 @@ internal class BitmapFactoryBitmapStream(
                     } while (!statefulMetadata.compareAndSet(current, newMetadata))
                 }
             }
-            return setMutable(
-                postProcess(bitmap, params) ?: return null,
-                inputParameters.mutable
-            )
+            return postProcess(bitmap, params)
+                ?.mutable(inputParameters.mutable)
         } finally {
             state?.setPhase(DecodingState.PHASE_COMLETE)
         }

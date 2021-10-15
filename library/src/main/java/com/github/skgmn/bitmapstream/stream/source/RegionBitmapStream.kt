@@ -60,4 +60,8 @@ internal class RegionBitmapStream(
             scaleY = height.toFloat() / scaledRegion.height()
         }
     }
+
+    override fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream {
+        return RegionBitmapStream(new, left, top, right, bottom)
+    }
 }

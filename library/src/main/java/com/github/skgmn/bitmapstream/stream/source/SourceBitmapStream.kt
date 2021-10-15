@@ -13,6 +13,8 @@ internal abstract class SourceBitmapStream : BitmapStream() {
 
     internal open val hasMetadata get() = false
 
+    internal open fun clearMutable(): SourceBitmapStream = this
+
     internal abstract fun buildInputParameters(features: StreamFeatures): InputParameters
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
 
@@ -60,7 +62,11 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun mutable(mutable: Boolean?): BitmapStream {
-        return MutableBitmapStream(this, mutable)
+        return if (mutable == null) {
+            this
+        } else {
+            MutableBitmapStream(this, mutable)
+        }
     }
 
     override fun downsampleOnly(): BitmapStream {

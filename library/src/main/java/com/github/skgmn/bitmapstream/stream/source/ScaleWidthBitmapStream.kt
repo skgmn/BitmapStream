@@ -41,4 +41,8 @@ internal class ScaleWidthBitmapStream(
             ScaleWidthBitmapStream(other, targetWidth * scaleWidth, heightScale * scaleHeight)
         }
     }
+
+    override fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream {
+        return ScaleWidthBitmapStream(new, targetWidth, heightScale)
+    }
 }
