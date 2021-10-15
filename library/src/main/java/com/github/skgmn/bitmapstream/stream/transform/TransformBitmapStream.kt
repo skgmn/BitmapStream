@@ -27,5 +27,22 @@ internal abstract class TransformBitmapStream(
         return replaceUpstream(other.region(left, top, right, bottom))
     }
 
+    override fun mutable(mutable: Boolean?): BitmapStream {
+        val mutableCleared = replaceUpstream(other.mutable(null))
+        return when (mutable) {
+            null -> mutableCleared
+            else -> MutableTransformBitmapStream(mutableCleared, mutable)
+        }
+    }
+
+    override fun hardware(hardware: Boolean): BitmapStream {
+        val hardwareCleared = replaceUpstream(other.hardware(false))
+        return if (hardware) {
+            HardwareTransformBitmapStream(hardwareCleared)
+        } else {
+            hardwareCleared
+        }
+    }
+
     protected abstract fun replaceUpstream(new: BitmapStream): BitmapStream
 }

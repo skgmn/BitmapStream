@@ -65,15 +65,26 @@ abstract class BitmapTestBase {
         }
     }
 
+    private fun ensureSoftware(bitmap: Bitmap): Bitmap {
+        return if (bitmap.config == Bitmap.Config.HARDWARE) {
+            bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        } else {
+            bitmap
+        }
+    }
+
     protected fun assertSimilar(expected: Bitmap, actual: Bitmap) {
         if (expected.width != actual.width || expected.height != actual.height) {
             throw AssertionError("Bitmaps should have same size")
         }
 
+        val expectedSoftware = ensureSoftware(expected)
+        val actualSoftware = ensureSoftware(actual)
+
         var img1 = Mat()
         var img2 = Mat()
-        Utils.bitmapToMat(expected, img1)
-        Utils.bitmapToMat(actual, img2)
+        Utils.bitmapToMat(expectedSoftware, img1)
+        Utils.bitmapToMat(actualSoftware, img2)
         val mssim = getMssim(img1, img2)
         if (mssim >= 0.983) {
             return
@@ -81,8 +92,8 @@ abstract class BitmapTestBase {
 
         // https://github.com/torcellite/imageComparator/blob/master/imageComparator/src/com/torcellite/imageComparator/MainActivity.java
 
-        val bmpimg1 = Bitmap.createScaledBitmap(expected, 100, 100, true)
-        val bmpimg2 = Bitmap.createScaledBitmap(actual, 100, 100, true)
+        val bmpimg1 = Bitmap.createScaledBitmap(expectedSoftware, 100, 100, true)
+        val bmpimg2 = Bitmap.createScaledBitmap(actualSoftware, 100, 100, true)
         img1 = Mat()
         img2 = Mat()
         Utils.bitmapToMat(bmpimg1, img1)

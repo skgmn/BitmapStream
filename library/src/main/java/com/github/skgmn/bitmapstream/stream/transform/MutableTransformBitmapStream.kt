@@ -24,6 +24,11 @@ internal class MutableTransformBitmapStream(
     }
 
     override fun decode(): Bitmap? {
-        return other.decode()?.mutable(mutable)
+        val stream = if (mutable) {
+            other.hardware(false)
+        } else {
+            other
+        }
+        return stream.decode()?.mutable(mutable)
     }
 }

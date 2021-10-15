@@ -14,6 +14,7 @@ import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
 import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
+import com.github.skgmn.bitmapstream.stream.transform.HardwareTransformBitmapStream
 import com.github.skgmn.bitmapstream.stream.transform.MutableTransformBitmapStream
 import java.io.File
 import java.io.InputStream
@@ -70,6 +71,10 @@ abstract class BitmapStream {
             frameMethod.computeBounds(metadata, frameWidth, frameHeight, srcRect, destRect)
             draw(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
         }
+    }
+
+    open fun hardware(hardware: Boolean): BitmapStream {
+        return if (hardware) HardwareTransformBitmapStream(this) else this
     }
 
     internal open fun downsampleOnly(): BitmapStream {

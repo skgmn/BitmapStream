@@ -1,5 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.source
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 
@@ -8,6 +9,7 @@ internal class InputParameters(
     var scaleY: Float = 1f,
     var region: Rect? = null,
     var mutable: Boolean? = null,
+    var hardware: Boolean = false,
     var downsampleOnly: Boolean = false
 ) {
     fun buildDecodingParameters(): DecodingParameters {
@@ -24,6 +26,9 @@ internal class InputParameters(
         options.inSampleSize = sampleSize
 
         mutable?.let { options.inMutable = it }
+        if (hardware) {
+            options.inPreferredConfig = Bitmap.Config.HARDWARE
+        }
 
         return DecodingParameters(
             options = options,

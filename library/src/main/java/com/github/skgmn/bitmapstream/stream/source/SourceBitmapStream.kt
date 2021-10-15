@@ -67,6 +67,14 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         }
     }
 
+    override fun hardware(hardware: Boolean): SourceBitmapStream {
+        return if (hardware) {
+            HardwareBitmapStream(this)
+        } else {
+            this
+        }
+    }
+
     override fun downsampleOnly(): BitmapStream {
         return DownsampleOnlyBitmapStream(this)
     }

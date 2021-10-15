@@ -11,6 +11,14 @@ internal fun Bitmap.mutable(mutable: Boolean?): Bitmap {
     }
 }
 
+internal fun Bitmap.hardware(): Bitmap {
+    return if (config == Bitmap.Config.HARDWARE) {
+        this
+    } else {
+        copy(Bitmap.Config.HARDWARE, false).also { recycle() }
+    }
+}
+
 internal fun Bitmap.scaleBy(scaleX: Float, scaleY: Float): Bitmap {
     return if (scaleX == 1f && scaleY == 1f) {
         this

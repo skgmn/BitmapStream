@@ -19,6 +19,15 @@ internal abstract class DelegateBitmapStream(
         }
     }
 
+    override fun hardware(hardware: Boolean): SourceBitmapStream {
+        val hardwareCleared = replaceUpstream(other.hardware(false))
+        return if (hardware) {
+            HardwareBitmapStream(hardwareCleared)
+        } else {
+            hardwareCleared
+        }
+    }
+
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
         return other.buildInputParameters(features)
     }
