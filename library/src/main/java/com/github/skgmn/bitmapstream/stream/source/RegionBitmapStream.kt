@@ -62,6 +62,10 @@ internal class RegionBitmapStream(
     }
 
     override fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream {
-        return RegionBitmapStream(new, left, top, right, bottom)
+        return if (other === new) {
+            this
+        } else {
+            RegionBitmapStream(new, left, top, right, bottom)
+        }
     }
 }

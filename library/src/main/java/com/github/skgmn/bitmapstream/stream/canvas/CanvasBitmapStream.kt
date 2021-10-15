@@ -14,7 +14,6 @@ internal class CanvasBitmapStream(
     private val regionBottom: Int = canvasHeight,
     private val scaleX: Float = 1f,
     private val scaleY: Float = 1f,
-    private val mutable: Boolean? = null,
     private val draw: DrawScope.() -> Unit
 ) : BitmapStream() {
     private val regionWidth get() = regionRight - regionLeft
@@ -44,7 +43,6 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 width / regionWidth.toFloat(),
                 height / regionHeight.toFloat(),
-                mutable,
                 draw
             )
         }
@@ -64,7 +62,6 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 scaleX * scale,
                 scaleY * scale,
-                mutable,
                 draw
             )
         }
@@ -84,7 +81,6 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 scaleX * scale,
                 scaleY * scale,
-                mutable,
                 draw
             )
         }
@@ -103,7 +99,6 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 scaleX * scaleWidth,
                 scaleY * scaleHeight,
-                mutable,
                 draw
             )
         }
@@ -122,26 +117,6 @@ internal class CanvasBitmapStream(
                 (regionTop + bottom / scaleY).roundToInt(),
                 scaleX,
                 scaleY,
-                mutable,
-                draw
-            )
-        }
-    }
-
-    override fun mutable(mutable: Boolean?): BitmapStream {
-        return if (this.mutable == mutable) {
-            this
-        } else {
-            CanvasBitmapStream(
-                canvasWidth,
-                canvasHeight,
-                regionLeft,
-                regionTop,
-                regionRight,
-                regionBottom,
-                scaleX,
-                scaleY,
-                mutable,
                 draw
             )
         }

@@ -1,7 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
-import com.github.skgmn.bitmapstream.BitmapStream
 
 internal abstract class DelegateBitmapStream(
     protected val other: SourceBitmapStream
@@ -12,20 +11,11 @@ internal abstract class DelegateBitmapStream(
 
     protected abstract fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream
 
-    override fun mutable(mutable: Boolean?): BitmapStream {
-        val mutableCleared = clearMutable()
+    override fun mutable(mutable: Boolean?): SourceBitmapStream {
+        val mutableCleared = replaceUpstream(other.mutable(null))
         return when (mutable) {
             null -> mutableCleared
             else -> MutableBitmapStream(mutableCleared, mutable)
-        }
-    }
-
-    override fun clearMutable(): SourceBitmapStream {
-        val mutableCleared = other.clearMutable()
-        return if (other === mutableCleared) {
-            this
-        } else {
-            replaceUpstream(mutableCleared)
         }
     }
 

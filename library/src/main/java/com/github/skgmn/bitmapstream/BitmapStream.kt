@@ -16,6 +16,7 @@ import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
 import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
+import com.github.skgmn.bitmapstream.stream.transform.MutableTransformBitmapStream
 import java.io.File
 import java.io.InputStream
 import kotlin.math.roundToInt
@@ -28,12 +29,19 @@ abstract class BitmapStream {
     abstract fun scaleHeight(height: Int): BitmapStream
     abstract fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream
     abstract fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream
-    abstract fun mutable(mutable: Boolean?): BitmapStream
 
     abstract fun decode(): Bitmap?
 
     fun region(bounds: Rect): BitmapStream {
         return region(bounds.left, bounds.top, bounds.right, bounds.bottom)
+    }
+
+    open fun mutable(mutable: Boolean?): BitmapStream {
+        return if (mutable == null) {
+            this
+        } else {
+            MutableTransformBitmapStream(this, mutable)
+        }
     }
 
     fun frame(

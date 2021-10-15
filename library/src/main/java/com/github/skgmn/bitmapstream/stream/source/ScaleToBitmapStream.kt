@@ -52,6 +52,10 @@ internal class ScaleToBitmapStream(
     }
 
     override fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream {
-        return ScaleToBitmapStream(new, targetWidth, targetHeight)
+        return if (other === new) {
+            this
+        } else {
+            ScaleToBitmapStream(new, targetWidth, targetHeight)
+        }
     }
 }

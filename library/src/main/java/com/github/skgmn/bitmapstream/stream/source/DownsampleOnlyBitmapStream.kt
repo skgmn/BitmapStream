@@ -8,6 +8,10 @@ internal class DownsampleOnlyBitmapStream(other: SourceBitmapStream) : DelegateB
     }
 
     override fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream {
-        return DownsampleOnlyBitmapStream(new)
+        return if (other === new) {
+            this
+        } else {
+            DownsampleOnlyBitmapStream(new)
+        }
     }
 }
