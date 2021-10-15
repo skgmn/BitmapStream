@@ -3,7 +3,6 @@ package com.github.skgmn.bitmapstream
 import android.content.res.AssetManager
 import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
@@ -15,11 +14,9 @@ import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
 import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
-import com.github.skgmn.bitmapstream.stream.source.DecodingParameters
 import com.github.skgmn.bitmapstream.stream.transform.MutableTransformBitmapStream
 import java.io.File
 import java.io.InputStream
-import kotlin.math.roundToInt
 
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
@@ -77,41 +74,6 @@ abstract class BitmapStream {
 
     internal open fun downsampleOnly(): BitmapStream {
         return this
-    }
-
-    internal fun postProcess(bitmap: Bitmap?, params: DecodingParameters): Bitmap? {
-        return if (bitmap == null || params.postScaleX == 1f && params.postScaleY == 1f) {
-            bitmap
-        } else {
-            val newWidth = (bitmap.width * params.postScaleX).roundToInt()
-            val newHeight = (bitmap.height * params.postScaleY).roundToInt()
-            Bitmap.createBitmap(newWidth, newHeight, bitmap.config).also {
-                val c = Canvas(it)
-                c.drawBitmap(
-                    bitmap,
-                    null,
-                    Rect(0, 0, newWidth, newHeight),
-                    Paint(Paint.FILTER_BITMAP_FLAG)
-                )
-                it.density = bitmap.density
-                it.setHasAlpha(bitmap.hasAlpha())
-                it.isPremultiplied = bitmap.isPremultiplied
-                bitmap.recycle()
-            }
-        }
-    }
-
-    internal fun setMutable(bitmap: Bitmap, mutable: Boolean?): Bitmap {
-        if (mutable == null || bitmap.isMutable == mutable) return bitmap
-        if (mutable) {
-            val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
-            val paint = Paint(Paint.FILTER_BITMAP_FLAG)
-            val destRect = Rect(0, 0, bitmap.width, bitmap.height)
-            Canvas(newBitmap).drawBitmap(bitmap, null, destRect, paint)
-            return newBitmap
-        } else {
-            return Bitmap.createBitmap(bitmap)
-        }
     }
 
     companion object {
