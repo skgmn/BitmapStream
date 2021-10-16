@@ -23,7 +23,6 @@ internal class InMemoryBitmapStream(
             ((bottom - top) * scaleY).roundToInt()
         }
         override val mimeType get() = "image/bmp"
-        override val densityScale get() = 1f
     }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {

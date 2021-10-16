@@ -16,8 +16,8 @@ import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.transform.HardwareTransformBitmapStream
 import com.github.skgmn.bitmapstream.stream.transform.MutableTransformBitmapStream
+import okio.source
 import java.io.File
-import java.io.InputStream
 
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
@@ -90,47 +90,49 @@ abstract class BitmapStream {
 
     companion object {
         @JvmStatic
-        fun create(assetManager: AssetManager, path: String): BitmapStream {
+        fun fromAsset(assetManager: AssetManager, path: String): BitmapStream {
             return BitmapFactoryBitmapStream(AssetBitmapSource(assetManager, path))
         }
 
         @JvmStatic
-        fun create(array: ByteArray): BitmapStream {
-            return create(array, 0, array.size)
+        fun fromByteArray(array: ByteArray): BitmapStream {
+            return fromByteArray(array, 0, array.size)
         }
 
         @JvmStatic
-        fun create(array: ByteArray, offset: Int, length: Int): BitmapStream {
+        fun fromByteArray(array: ByteArray, offset: Int, length: Int): BitmapStream {
             return BitmapFactoryBitmapStream(ByteArrayBitmapSource(array, offset, length))
         }
 
         @JvmStatic
-        fun create(file: File): BitmapStream {
+        fun fromFile(file: File): BitmapStream {
             return BitmapFactoryBitmapStream(FileBitmapSource(file))
         }
 
         @JvmStatic
-        fun create(res: Resources, @DrawableRes id: Int): BitmapStream {
+        fun fromResource(res: Resources, @DrawableRes id: Int): BitmapStream {
             return BitmapFactoryBitmapStream(ResourceBitmapSource(res, id))
         }
 
         @JvmStatic
-        fun create(inputStream: InputStream): BitmapStream {
-            return BitmapFactoryBitmapStream(InputStreamBitmapSource(inputStream))
+        fun fromInputStreamFactory(factory: InputStreamFactory): BitmapStream {
+            return BitmapFactoryBitmapStream(SourceFactoryBitmapSource {
+                factory.createInputStream().source()
+            })
         }
 
         @JvmStatic
-        fun create(inputStreamFactory: InputStreamFactory): BitmapStream {
-            return BitmapFactoryBitmapStream(InputStreamFactoryBitmapSource(inputStreamFactory))
+        fun fromSourceFactory(factory: SourceFactory): BitmapStream {
+            return BitmapFactoryBitmapStream(SourceFactoryBitmapSource(factory))
         }
 
         @JvmStatic
-        fun create(bitmap: Bitmap): BitmapStream {
+        fun fromBitmap(bitmap: Bitmap): BitmapStream {
             return InMemoryBitmapStream(bitmap)
         }
 
         @JvmStatic
-        fun create(d: Drawable): BitmapStream {
+        fun fromDrawable(d: Drawable): BitmapStream {
             return CanvasBitmapStream(d.intrinsicWidth, d.intrinsicHeight) {
                 draw(d)
             }

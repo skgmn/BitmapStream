@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.test.R
+import okio.source
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,7 +75,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun decodeByteArray() {
-        val byFactoryFromRes = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        val byFactoryFromRes =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         val data = ByteArrayOutputStream().use {
             byFactoryFromRes.compress(Bitmap.CompressFormat.PNG, 100, it)
             it.toByteArray()
@@ -95,7 +97,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun decodeByteArrayWithMetadata() {
-        val byFactoryFromRes = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        val byFactoryFromRes =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         val data = ByteArrayOutputStream().use {
             byFactoryFromRes.compress(Bitmap.CompressFormat.PNG, 100, it)
             it.toByteArray()
@@ -119,7 +122,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun decodeFile() {
-        val byFactoryFromRes = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        val byFactoryFromRes =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         appContext.openFileOutput("decodeFileTest.png", Context.MODE_PRIVATE).use {
             byFactoryFromRes.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
@@ -136,7 +140,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun decodeFileWithMetadata() {
-        val byFactoryFromRes = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        val byFactoryFromRes =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         appContext.openFileOutput("decodeFileTest.png", Context.MODE_PRIVATE).use {
             byFactoryFromRes.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
@@ -156,11 +161,12 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun decodeStream() {
-        val byFactory = BitmapFactory.decodeStream(appContext.resources.openRawResource(R.drawable.nodpi_image))
+        val byFactory =
+            BitmapFactory.decodeStream(appContext.resources.openRawResource(R.drawable.nodpi_image))
 
-        val source = InputStreamBitmapSource(
-            appContext.resources.openRawResource(R.drawable.nodpi_image)
-        )
+        val source = SourceFactoryBitmapSource {
+            appContext.resources.openRawResource(R.drawable.nodpi_image).source()
+        }
         val decoder = BitmapFactoryBitmapStream(source)
         val byDecoder = assertNotNull(decoder.decode())
 
@@ -169,11 +175,12 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
     @Test
     fun decodeStreamWithMetadata() {
-        val byFactory = BitmapFactory.decodeStream(appContext.resources.openRawResource(R.drawable.nodpi_image))
+        val byFactory =
+            BitmapFactory.decodeStream(appContext.resources.openRawResource(R.drawable.nodpi_image))
 
-        val source = InputStreamBitmapSource(
-            appContext.resources.openRawResource(R.drawable.nodpi_image)
-        )
+        val source = SourceFactoryBitmapSource {
+            appContext.resources.openRawResource(R.drawable.nodpi_image).source()
+        }
         val decoder = BitmapFactoryBitmapStream(source)
 
         assertEquals(decoder.metadata.width, byFactory.width)

@@ -9,13 +9,15 @@ internal class ByteArrayBitmapSource(
     private val data: ByteArray,
     private val offset: Int,
     private val length: Int
-) : BitmapFactorySource() {
-    override fun decodeBitmap(options: BitmapFactory.Options): Bitmap? {
-        return BitmapFactory.decodeByteArray(data, offset, length, options)
-    }
+) : BitmapSource() {
+    override fun createDecodeSession() = object : DecodeSession {
+        override fun decodeBitmap(options: BitmapFactory.Options): Bitmap? {
+            return BitmapFactory.decodeByteArray(data, offset, length, options)
+        }
 
-    override fun decodeBitmapRegion(region: Rect, options: BitmapFactory.Options): Bitmap? {
-        val regionDecoder = BitmapRegionDecoder.newInstance(data, offset, length, false)
-        return regionDecoder.decodeRegion(region, options)
+        override fun decodeBitmapRegion(region: Rect, options: BitmapFactory.Options): Bitmap? {
+            val regionDecoder = BitmapRegionDecoder.newInstance(data, offset, length, false)
+            return regionDecoder.decodeRegion(region, options)
+        }
     }
 }

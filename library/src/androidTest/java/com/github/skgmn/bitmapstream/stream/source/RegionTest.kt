@@ -7,9 +7,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.source.ByteArrayBitmapSource
 import com.github.skgmn.bitmapstream.source.FileBitmapSource
-import com.github.skgmn.bitmapstream.source.InputStreamBitmapSource
 import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
+import com.github.skgmn.bitmapstream.source.SourceFactoryBitmapSource
 import com.github.skgmn.bitmapstream.test.R
+import okio.source
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,7 +21,8 @@ import java.io.File
 class RegionTest : BitmapTestBase() {
     @Test
     fun simple() {
-        val bitmap = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image, null)
+        val bitmap =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image, null)
         val byFactory = Bitmap.createBitmap(
             bitmap, 100, 110, 120, 130
         )
@@ -66,7 +68,8 @@ class RegionTest : BitmapTestBase() {
 
     @Test
     fun byteArray() {
-        val byFactoryFromRes = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        val byFactoryFromRes =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         val data = ByteArrayOutputStream().use {
             byFactoryFromRes.compress(Bitmap.CompressFormat.PNG, 100, it)
             it.toByteArray()
@@ -93,7 +96,8 @@ class RegionTest : BitmapTestBase() {
 
     @Test
     fun file() {
-        val byFactoryFromRes = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
+        val byFactoryFromRes =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
         appContext.openFileOutput("decodeFileTest.png", Context.MODE_PRIVATE).use {
             byFactoryFromRes.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
@@ -121,9 +125,9 @@ class RegionTest : BitmapTestBase() {
             12, 34, 56, 78
         )
 
-        val source = InputStreamBitmapSource(
-            appContext.resources.openRawResource(R.drawable.nodpi_image)
-        )
+        val source = SourceFactoryBitmapSource {
+            appContext.resources.openRawResource(R.drawable.nodpi_image).source()
+        }
         val decoder = BitmapFactoryBitmapStream(source)
             .region(12, 34, 12 + 56, 34 + 78)
 
@@ -136,7 +140,8 @@ class RegionTest : BitmapTestBase() {
 
     @Test
     fun afterScaleBy() {
-        val bitmap = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image, null)
+        val bitmap =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image, null)
         val scaledBitmap = Bitmap.createScaledBitmap(
             bitmap, bitmap.width * 2, bitmap.height * 3, true
         )

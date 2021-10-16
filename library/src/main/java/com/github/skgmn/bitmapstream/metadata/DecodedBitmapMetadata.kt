@@ -4,7 +4,7 @@ import android.graphics.BitmapFactory
 
 internal open class DecodedBitmapMetadata(
     options: BitmapFactory.Options
-) : BitmapMetadata {
+) : ExtendedBitmapMetadata {
     override val width: Int = options.outWidth
     override val height: Int = options.outHeight
     override val mimeType: String? = options.outMimeType

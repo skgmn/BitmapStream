@@ -28,7 +28,6 @@ internal class CanvasBitmapStream(
             (regionHeight * scaleY).roundToInt()
         }
         override val mimeType get() = "image/bmp"
-        override val densityScale get() = 1f
     }
 
     override val features = object : StreamFeatures {

@@ -1,8 +1,8 @@
 package com.github.skgmn.bitmapstream.metadata
 
 internal class LazyBitmapMetadata(
-    provider: (LazyBitmapMetadata) -> BitmapMetadata
-) : BitmapMetadata {
+    provider: (LazyBitmapMetadata) -> ExtendedBitmapMetadata
+) : ExtendedBitmapMetadata {
     private val other by lazy { provider(this) }
 
     override val width: Int get() = other.width

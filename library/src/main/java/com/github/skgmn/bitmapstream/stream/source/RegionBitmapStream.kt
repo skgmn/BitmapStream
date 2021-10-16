@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.source
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.ExtendedBitmapMetadata
 import kotlin.math.roundToInt
 
 internal class RegionBitmapStream(
@@ -13,7 +13,7 @@ internal class RegionBitmapStream(
     private val right: Int,
     private val bottom: Int
 ) : DelegateBitmapStream(other) {
-    override val metadata = object : BitmapMetadata {
+    override val metadata = object : ExtendedBitmapMetadata {
         override val width: Int get() = right - left
         override val height: Int get() = bottom - top
         override val mimeType: String? get() = other.metadata.mimeType

@@ -4,5 +4,4 @@ interface BitmapMetadata {
     val width: Int
     val height: Int
     val mimeType: String?
-    val densityScale: Float
 }

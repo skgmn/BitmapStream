@@ -5,6 +5,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import androidx.test.core.app.ApplicationProvider
+import com.github.skgmn.bitmapstream.source.BitmapSource
+import com.github.skgmn.bitmapstream.source.DecodeSession
+import io.mockk.every
+import io.mockk.spyk
 import org.junit.Assert
 import org.junit.Before
 import org.opencv.android.Utils
@@ -26,7 +30,11 @@ abstract class BitmapTestBase {
         return o!!
     }
 
-    protected fun decodeBitmapScaleTo(width: Int, height: Int, decoder: (BitmapFactory.Options?) -> Bitmap?): Bitmap {
+    protected fun decodeBitmapScaleTo(
+        width: Int,
+        height: Int,
+        decoder: (BitmapFactory.Options?) -> Bitmap?
+    ): Bitmap {
         val opts = BitmapFactory.Options()
         opts.inJustDecodeBounds = true
         decoder(opts)
@@ -38,7 +46,11 @@ abstract class BitmapTestBase {
         )
     }
 
-    protected fun decodeBitmapScaleBy(scaleX: Float, scaleY: Float, decoder: (BitmapFactory.Options?) -> Bitmap?): Bitmap {
+    protected fun decodeBitmapScaleBy(
+        scaleX: Float,
+        scaleY: Float,
+        decoder: (BitmapFactory.Options?) -> Bitmap?
+    ): Bitmap {
         var sx = scaleX
         var sy = scaleY
         var sampleSize = 1
@@ -200,6 +212,21 @@ abstract class BitmapTestBase {
         val temp = Mat()
         Core.add(this, other, temp)
         return temp
+    }
+
+    internal class BitmapSourceSpy(
+        source: BitmapSource
+    ) {
+        val source = spyk(source)
+        val sessions = mutableListOf<DecodeSession>()
+
+        init {
+            every { this@BitmapSourceSpy.source.createDecodeSession() } answers {
+                val session = spyk(it.invocation.originalCall() as DecodeSession)
+                sessions += session
+                session
+            }
+        }
     }
 
     companion object {

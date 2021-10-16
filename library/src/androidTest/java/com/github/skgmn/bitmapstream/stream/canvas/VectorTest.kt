@@ -17,7 +17,7 @@ class VectorTest : BitmapTestBase() {
         m.postScale(0.7f, 0.8f)
         expected = Bitmap.createBitmap(expected, 100, 150, 200, 300, m, true)
 
-        val stream = BitmapStream.create(vector)
+        val stream = BitmapStream.fromDrawable(vector)
             .region(100, 150, 100 + 200, 150 + 300)
             .scaleBy(0.7f, 0.8f)
         val actual = assertNotNull(stream.decode())

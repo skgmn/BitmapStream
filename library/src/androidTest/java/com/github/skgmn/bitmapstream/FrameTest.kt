@@ -68,14 +68,15 @@ class FrameTest : BitmapTestBase() {
             )
         }
 
-        val bitmapSource = spyk(ResourceBitmapSource(res, R.drawable.nodpi_image))
-        val sourceStream = BitmapFactoryBitmapStream(bitmapSource)
+        val sourceSpy = BitmapSourceSpy(ResourceBitmapSource(res, R.drawable.nodpi_image))
+        val sourceStream = BitmapFactoryBitmapStream(sourceSpy.source)
         val background = spyk(ColorDrawable(Color.RED))
         val frameStream = sourceStream.frame(288, 288, ImageView.ScaleType.CENTER_CROP, background)
         val actual = assertNotNull(frameStream.decode())
 
         verify {
-            bitmapSource.decodeBitmapRegion(Rect(120, 0, 480, 360), any())
+            sourceSpy.sessions.last()
+                .decodeBitmapRegion(Rect(120, 0, 480, 360), any())
         }
         verify(exactly = 0) {
             background.draw(any())
@@ -87,8 +88,8 @@ class FrameTest : BitmapTestBase() {
     fun downsample() {
         val res = appContext.resources
         val source = BitmapFactory.decodeResource(res, R.drawable.nodpi_image)
-        val frame = Bitmap.createBitmap(144, 144, Bitmap.Config.ARGB_8888)
-        Canvas(frame).run {
+        val expected = Bitmap.createBitmap(144, 144, Bitmap.Config.ARGB_8888)
+        Canvas(expected).run {
             drawColor(Color.RED)
             drawBitmap(
                 source,
@@ -97,20 +98,19 @@ class FrameTest : BitmapTestBase() {
                 Paint(Paint.FILTER_BITMAP_FLAG)
             )
         }
-        val byFactory = frame
 
-        val bitmapSource = spyk(ResourceBitmapSource(res, R.drawable.nodpi_image))
-        val sourceStream = BitmapFactoryBitmapStream(bitmapSource)
+        val sourceSpy = BitmapSourceSpy(ResourceBitmapSource(res, R.drawable.nodpi_image))
+        val sourceStream = BitmapFactoryBitmapStream(sourceSpy.source)
         val frameStream =
             sourceStream.frame(144, 144, ImageView.ScaleType.CENTER_CROP, ColorDrawable(Color.RED))
-        val byDecoder = assertNotNull(frameStream.decode())
+        val actual = assertNotNull(frameStream.decode())
 
         verify {
-            bitmapSource.decodeBitmapRegion(
+            sourceSpy.sessions.last().decodeBitmapRegion(
                 Rect(120, 0, 480, 360),
                 match { it.inSampleSize == 2 }
             )
         }
-        assertSimilar(byFactory, byDecoder)
+        assertSimilar(expected, actual)
     }
 }

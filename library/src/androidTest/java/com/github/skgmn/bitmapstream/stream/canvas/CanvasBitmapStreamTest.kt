@@ -13,28 +13,30 @@ import org.junit.Test
 class CanvasBitmapStreamTest : BitmapTestBase() {
     @Test
     fun overflowToRightBottom() {
-        val byFactory = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
+        val expected = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
         val imageBitmap = BitmapFactory.decodeResource(appContext.resources, R.drawable.nodpi_image)
-        Canvas(byFactory).run {
+        Canvas(expected).run {
             drawColor(Color.BLACK)
             drawBitmap(imageBitmap, 210f, 160f, null)
         }
 
-        val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
-        val imageStream = spyk(BitmapFactoryBitmapStream(source))
+        val sourceSpy =
+            BitmapSourceSpy(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
+        val imageStream = spyk(BitmapFactoryBitmapStream(sourceSpy.source))
         val canvas = CanvasBitmapStream(400, 300) {
             draw(ColorDrawable(Color.BLACK))
             draw(imageStream, 210, 160, null)
         }
-        val byDecoder = canvas.decode()
+        val actual = assertNotNull(canvas.decode())
 
         verify(exactly = 1) {
             imageStream.region(0, 0, 190, 140)
         }
         verify(exactly = 1) {
-            source.decodeBitmapRegion(Rect(0, 0, 190, 140), any())
+            sourceSpy.sessions.last()
+                .decodeBitmapRegion(Rect(0, 0, 190, 140), any())
         }
-        assertSimilar(byFactory, assertNotNull(byDecoder))
+        assertSimilar(expected, actual)
     }
 
     @Test
@@ -48,9 +50,10 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
             drawBitmap(imageBitmap, -40f, -50f, null)
         }
 
-        val source = spyk(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
+        val sourceSpy =
+            BitmapSourceSpy(ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image))
         val imageStream = spyk(
-            BitmapFactoryBitmapStream(source)
+            BitmapFactoryBitmapStream(sourceSpy.source)
                 .region(110, 111, 110 + 112, 111 + 113)
                 .scaleTo(200, 250)
         )
@@ -64,7 +67,8 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
             imageStream.region(40, 50, 200, 250)
         }
         verify(exactly = 1) {
-            source.decodeBitmapRegion(Rect(132, 134, 222, 224), any())
+            sourceSpy.sessions.last()
+                .decodeBitmapRegion(Rect(132, 134, 222, 224), any())
         }
         assertSimilar(expected, actual)
     }
