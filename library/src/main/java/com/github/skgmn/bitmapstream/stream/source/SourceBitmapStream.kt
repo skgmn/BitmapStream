@@ -15,29 +15,15 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return if (hasDimensions &&
-            width.toDouble() == exactWidth && height.toDouble() == exactHeight
-        ) {
-            this
-        } else {
-            SourceOperatorScaleTo(this, width.toDouble(), height.toDouble())
-        }
+        return SourceOperatorScaleTo(this, width.toDouble(), height.toDouble())
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return if (hasDimensions && width.toDouble() == exactWidth) {
-            this
-        } else {
-            SourceOperatorScaleWidth(this, width.toDouble(), 1f)
-        }
+        return SourceOperatorScaleWidth(this, width.toDouble(), 1f)
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (hasDimensions && height.toDouble() == exactHeight) {
-            this
-        } else {
-            SourceOperatorScaleHeight(this, height.toDouble(), 1f)
-        }
+        return SourceOperatorScaleHeight(this, height.toDouble(), 1f)
     }
 
     override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
@@ -49,12 +35,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return if (hasDimensions && left == 0 && top == 0 &&
-            right.toDouble() == exactWidth && bottom.toDouble() == exactHeight) {
-            this
-        } else {
-            SourceOperatorRegion(this, left, top, right, bottom)
-        }
+        return SourceOperatorRegion(this, left, top, right, bottom)
     }
 
     override fun mutable(mutable: Boolean?): SourceBitmapStream {

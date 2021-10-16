@@ -6,7 +6,7 @@ internal class SourceOperatorScaleTo(
     other: SourceBitmapStream,
     private val targetWidth: Double,
     private val targetHeight: Double
-) : ScaleBitmapStream(other) {
+) : SourceOperatorScaleBase(other) {
     override val scaleX by lazy(LazyThreadSafetyMode.NONE) {
         (targetWidth / other.metadata.width).toFloat()
     }

@@ -60,13 +60,13 @@ internal class BitmapFactoryBitmapStream(
         val session = getSession()
 
         val params = inputParameters.buildDecodingParameters()
-        if (params.region != null) {
-            metadata.width
-        }
+        val region = params.region
 
-        val bitmap = if (params.region != null) {
-            session.decodeBitmapRegion(params.region, params.options)
-        } else {
+        val bitmap = if (region == null ||
+            // compare dimensions first to ensure it's been decoded first on regional decoding
+            region.right == metadata.width && region.bottom == metadata.height &&
+            region.left == 0 && region.top == 0
+        ) {
             session.decodeBitmap(params.options).also {
                 val newMetadata = DecodedBitmapMetadata(params.options)
                 do {
@@ -74,6 +74,8 @@ internal class BitmapFactoryBitmapStream(
                     if (current !is LazyBitmapMetadata) break
                 } while (!statefulMetadata.compareAndSet(current, newMetadata))
             }
+        } else {
+            session.decodeBitmapRegion(region, params.options)
         }
         return bitmap
             ?.scaleBy(params.postScaleX, params.postScaleY)

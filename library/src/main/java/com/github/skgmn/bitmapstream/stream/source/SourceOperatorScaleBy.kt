@@ -6,13 +6,9 @@ internal class SourceOperatorScaleBy(
     other: SourceBitmapStream,
     override val scaleX: Float,
     override val scaleY: Float
-) : ScaleBitmapStream(other) {
+) : SourceOperatorScaleBase(other) {
     override val exactWidth by lazy(LazyThreadSafetyMode.NONE) { other.exactWidth * scaleX }
     override val exactHeight by lazy(LazyThreadSafetyMode.NONE) { other.exactHeight * scaleY }
-
-    override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return other.scaleTo(width, height)
-    }
 
     override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
         return if (scaleWidth == 1f && scaleHeight == 1f) {

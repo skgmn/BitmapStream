@@ -10,30 +10,15 @@ internal abstract class LazyBitmapStream : BitmapStream() {
     internal abstract fun buildStream(): BitmapStream?
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return if (hasDimensions &&
-            simulatedWidth == width.toDouble() &&
-            simulatedHeight == height.toDouble()
-        ) {
-            this
-        } else {
-            LazyOperatorScaleTo(this, width, height)
-        }
+        return LazyOperatorScaleTo(this, width, height)
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return if (hasDimensions && simulatedWidth == width.toDouble()) {
-            this
-        } else {
-            LazyOperatorScaleWidth(this, width)
-        }
+        return LazyOperatorScaleWidth(this, width)
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (hasDimensions && simulatedHeight == height.toDouble()) {
-            this
-        } else {
-            LazyOperatorScaleHeight(this, height)
-        }
+        return LazyOperatorScaleHeight(this, height)
     }
 
     override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
@@ -45,13 +30,7 @@ internal abstract class LazyBitmapStream : BitmapStream() {
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return if (hasDimensions && left == 0 && top == 0 &&
-            right.toDouble() == simulatedWidth && bottom.toDouble() == simulatedHeight
-        ) {
-            this
-        } else {
-            LazyOperatorRegion(this, left, top, right, bottom)
-        }
+        return LazyOperatorRegion(this, left, top, right, bottom)
     }
 
     override fun mutable(mutable: Boolean?): LazyBitmapStream {
