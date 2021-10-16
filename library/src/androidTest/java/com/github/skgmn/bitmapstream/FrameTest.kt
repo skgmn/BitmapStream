@@ -2,7 +2,8 @@ package com.github.skgmn.bitmapstream
 
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
-import android.widget.ImageView
+import com.github.skgmn.bitmapstream.frame.FitGravity
+import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.source.ResourceBitmapSource
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.test.R
@@ -16,20 +17,23 @@ class FrameTest : BitmapTestBase() {
     fun fitCenter() {
         val res = appContext.resources
         val source = BitmapFactory.decodeResource(res, R.drawable.nodpi_image)
-        val frame = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
-        Canvas(frame).run {
+        val expected = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
+        Canvas(expected).run {
             drawColor(Color.RED)
             drawBitmap(source, null, Rect(0, 40, 200, 160), Paint(Paint.FILTER_BITMAP_FLAG))
         }
-        val byFactory = frame
 
         val sourceStream =
             BitmapFactoryBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
-        val frameStream =
-            sourceStream.frame(200, 200, ImageView.ScaleType.FIT_CENTER, ColorDrawable(Color.RED))
-        val byDecoder = assertNotNull(frameStream.decode())
+        val frameStream = sourceStream.frame(
+            200,
+            200,
+            FrameMethod.fit(FitGravity.CENTER),
+            ColorDrawable(Color.RED)
+        )
+        val actual = assertNotNull(frameStream.decode())
 
-        assertSimilar(byFactory, byDecoder)
+        assertSimilar(expected, actual)
     }
 
     @Test
@@ -45,8 +49,12 @@ class FrameTest : BitmapTestBase() {
         val sourceStream =
             BitmapFactoryBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
                 .hardware(true)
-        val frameStream =
-            sourceStream.frame(200, 200, ImageView.ScaleType.FIT_CENTER, ColorDrawable(Color.RED))
+        val frameStream = sourceStream.frame(
+            200,
+            200,
+            FrameMethod.fit(FitGravity.CENTER),
+            ColorDrawable(Color.RED)
+        )
         val actual = assertNotNull(frameStream.decode())
 
         assertEquals(Bitmap.Config.HARDWARE, actual.config)
@@ -71,7 +79,7 @@ class FrameTest : BitmapTestBase() {
         val sourceSpy = BitmapSourceSpy(ResourceBitmapSource(res, R.drawable.nodpi_image))
         val sourceStream = BitmapFactoryBitmapStream(sourceSpy.source)
         val background = spyk(ColorDrawable(Color.RED))
-        val frameStream = sourceStream.frame(288, 288, ImageView.ScaleType.CENTER_CROP, background)
+        val frameStream = sourceStream.frame(288, 288, FrameMethod.CENTER_CROP, background)
         val actual = assertNotNull(frameStream.decode())
 
         verify {
@@ -102,7 +110,7 @@ class FrameTest : BitmapTestBase() {
         val sourceSpy = BitmapSourceSpy(ResourceBitmapSource(res, R.drawable.nodpi_image))
         val sourceStream = BitmapFactoryBitmapStream(sourceSpy.source)
         val frameStream =
-            sourceStream.frame(144, 144, ImageView.ScaleType.CENTER_CROP, ColorDrawable(Color.RED))
+            sourceStream.frame(144, 144, FrameMethod.CENTER_CROP, ColorDrawable(Color.RED))
         val actual = assertNotNull(frameStream.decode())
 
         verify {

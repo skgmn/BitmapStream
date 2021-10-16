@@ -1,7 +1,6 @@
 package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 
 internal class FitXYFrameMethod : FrameMethod {
@@ -9,10 +8,10 @@ internal class FitXYFrameMethod : FrameMethod {
         metadata: BitmapMetadata,
         frameWidth: Int,
         frameHeight: Int,
-        outSrc: Rect?,
-        outDest: Rect?
+        outSrc: Rect,
+        outDest: Rect
     ) {
-        outSrc?.set(0, 0, metadata.width, metadata.height)
-        outDest?.set(0, 0, frameWidth, frameHeight)
+        outSrc.set(0, 0, metadata.width, metadata.height)
+        outDest.set(0, 0, frameWidth, frameHeight)
     }
 }

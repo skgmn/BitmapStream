@@ -6,9 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.widget.ImageView
 import androidx.annotation.DrawableRes
-import com.github.skgmn.bitmapstream.frame.*
+import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
@@ -52,23 +51,9 @@ abstract class BitmapStream {
     fun frame(
         frameWidth: Int,
         frameHeight: Int,
-        scaleType: ImageView.ScaleType,
+        frameMethod: FrameMethod,
         background: Drawable?
     ): BitmapStream {
-        val frameMethod = when (scaleType) {
-            ImageView.ScaleType.MATRIX -> MatrixFrameMethod()
-            ImageView.ScaleType.FIT_XY -> FitXYFrameMethod()
-            ImageView.ScaleType.FIT_START ->
-                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_START)
-            ImageView.ScaleType.FIT_CENTER ->
-                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_CENTER)
-            ImageView.ScaleType.FIT_END ->
-                FitGravityFrameMethod(FitGravityFrameMethod.GRAVITY_END)
-            ImageView.ScaleType.CENTER -> CenterFrameMethod()
-            ImageView.ScaleType.CENTER_INSIDE -> CenterInsideFrameMethod()
-            ImageView.ScaleType.CENTER_CROP -> CenterCropFrameMethod()
-            else -> throw IllegalArgumentException()
-        }
         val features = features
         return CanvasBitmapStream(
             canvasWidth = frameWidth,

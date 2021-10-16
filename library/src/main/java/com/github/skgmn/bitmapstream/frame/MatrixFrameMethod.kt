@@ -9,12 +9,12 @@ internal class MatrixFrameMethod : FrameMethod {
         metadata: BitmapMetadata,
         frameWidth: Int,
         frameHeight: Int,
-        outSrc: Rect?,
-        outDest: Rect?
+        outSrc: Rect,
+        outDest: Rect
     ) {
         val width = min(metadata.width, frameWidth)
         val height = min(metadata.height, frameHeight)
-        outSrc?.set(0, 0, width, height)
-        outDest?.set(0, 0, width, height)
+        outSrc.set(0, 0, width, height)
+        outDest.set(0, 0, width, height)
     }
 }
