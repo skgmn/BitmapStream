@@ -16,39 +16,42 @@ internal class InMemoryBitmapStream(
     private val scaleY: Float = 1f
 ) : BitmapStream() {
     override val metadata = object : BitmapMetadata {
-        override val width by lazy(LazyThreadSafetyMode.NONE) {
-            ((right - left) * scaleX).roundToInt()
-        }
-        override val height by lazy(LazyThreadSafetyMode.NONE) {
-            ((bottom - top) * scaleY).roundToInt()
-        }
+        override val width get() = exactWidth.roundToInt()
+        override val height get() = exactHeight.roundToInt()
         override val mimeType get() = "image/bmp"
     }
 
+    private val exactWidth by lazy(LazyThreadSafetyMode.NONE) {
+        (right - left) * scaleX
+    }
+    private val exactHeight by lazy(LazyThreadSafetyMode.NONE) {
+        (bottom - top) * scaleY
+    }
+
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return if (width == metadata.width && height == metadata.height) {
+        return if (width.toFloat() == exactWidth && height.toFloat() == exactHeight) {
             this
         } else {
-            val sx = width.toFloat() / metadata.width
-            val sy = height.toFloat() / metadata.height
+            val sx = width / exactWidth
+            val sy = height / exactHeight
             InMemoryBitmapStream(bitmap, left, top, right, bottom, scaleX * sx, scaleY * sy)
         }
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return if (width == metadata.width) {
+        return if (width.toFloat() == exactWidth) {
             this
         } else {
-            val scale = width.toFloat() / metadata.width
+            val scale = width / exactWidth
             InMemoryBitmapStream(bitmap, left, top, right, bottom, scaleX * scale, scaleY * scale)
         }
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (height == metadata.height) {
+        return if (height.toFloat() == exactHeight) {
             this
         } else {
-            val scale = height.toFloat() / metadata.height
+            val scale = height / exactHeight
             InMemoryBitmapStream(bitmap, left, top, right, bottom, scaleX * scale, scaleY * scale)
         }
     }
@@ -70,10 +73,12 @@ internal class InMemoryBitmapStream(
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        if (left == 0 && top == 0 && right == metadata.width && bottom == metadata.height) {
-            return this
+        return if (left == 0 && top == 0 &&
+            right.toFloat() == exactWidth && bottom.toFloat() == exactHeight
+        ) {
+            this
         } else {
-            return InMemoryBitmapStream(
+            InMemoryBitmapStream(
                 bitmap,
                 (this.left + left / scaleX).roundToInt(),
                 (this.top + top / scaleY).roundToInt(),
@@ -83,10 +88,6 @@ internal class InMemoryBitmapStream(
                 scaleY
             )
         }
-    }
-
-    override fun mutable(mutable: Boolean?): BitmapStream {
-        TODO("Not yet implemented")
     }
 
     override fun decode(): Bitmap {

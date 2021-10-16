@@ -17,17 +17,17 @@ internal class CanvasBitmapStream(
     private val scaleY: Float = 1f,
     private val draw: DrawScope.() -> Unit
 ) : BitmapStream() {
-    private val regionWidth get() = regionRight - regionLeft
-    private val regionHeight get() = regionBottom - regionTop
-
     override val metadata = object : BitmapMetadata {
-        override val width by lazy(LazyThreadSafetyMode.NONE) {
-            (regionWidth * scaleX).roundToInt()
-        }
-        override val height by lazy(LazyThreadSafetyMode.NONE) {
-            (regionHeight * scaleY).roundToInt()
-        }
+        override val width get() = exactWidth.roundToInt()
+        override val height get() = exactHeight.roundToInt()
         override val mimeType get() = "image/bmp"
+    }
+
+    private val exactWidth by lazy(LazyThreadSafetyMode.NONE) {
+        (regionRight - regionLeft) * scaleX
+    }
+    private val exactHeight by lazy(LazyThreadSafetyMode.NONE) {
+        (regionBottom - regionTop) * scaleY
     }
 
     override val features = object : StreamFeatures {
@@ -39,7 +39,7 @@ internal class CanvasBitmapStream(
     }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return if (width == metadata.width && height == metadata.height) {
+        return if (width.toFloat() == exactWidth && height.toFloat() == exactHeight) {
             this
         } else {
             CanvasBitmapStream(
@@ -49,18 +49,18 @@ internal class CanvasBitmapStream(
                 regionTop,
                 regionRight,
                 regionBottom,
-                width / regionWidth.toFloat(),
-                height / regionHeight.toFloat(),
+                width / exactWidth,
+                height / exactHeight,
                 draw
             )
         }
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return if (width == metadata.width) {
+        return if (width.toFloat() == exactWidth) {
             this
         } else {
-            val scale = width.toFloat() / metadata.width
+            val scale = width / exactWidth
             CanvasBitmapStream(
                 canvasWidth,
                 canvasHeight,
@@ -76,10 +76,10 @@ internal class CanvasBitmapStream(
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (height == metadata.height) {
+        return if (height.toFloat() == exactHeight) {
             this
         } else {
-            val scale = height.toFloat() / metadata.height
+            val scale = height / exactHeight
             CanvasBitmapStream(
                 canvasWidth,
                 canvasHeight,
@@ -113,7 +113,9 @@ internal class CanvasBitmapStream(
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return if (left == 0 && top == 0 && right == metadata.width && bottom == metadata.height) {
+        return if (left == 0 && top == 0 &&
+            right.toFloat() == exactWidth && bottom.toFloat() == exactHeight
+        ) {
             this
         } else {
             CanvasBitmapStream(
