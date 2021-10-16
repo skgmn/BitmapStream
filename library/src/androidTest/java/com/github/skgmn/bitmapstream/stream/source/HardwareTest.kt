@@ -48,12 +48,6 @@ class HardwareTest : BitmapTestBase() {
             .scaleTo(140, 150)
         val actual = assertNotNull(decoder.decode())
 
-        verify {
-            source.decodeBitmapRegion(
-                any(),
-                match { it.inPreferredConfig == Bitmap.Config.HARDWARE }
-            )
-        }
         assertEquals(Bitmap.Config.HARDWARE, actual.config)
         assertSimilar(actual, expected)
     }

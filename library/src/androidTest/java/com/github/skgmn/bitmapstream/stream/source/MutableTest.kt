@@ -47,9 +47,6 @@ class MutableTest : BitmapTestBase() {
             .scaleTo(140, 150)
         val actual = assertNotNull(decoder.decode())
 
-        verify {
-            source.decodeBitmapRegion(any(), match { it.inMutable })
-        }
         assertEquals(true, actual.isMutable)
         assertSimilar(actual, expected)
     }

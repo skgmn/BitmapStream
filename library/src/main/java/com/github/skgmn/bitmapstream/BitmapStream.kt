@@ -22,6 +22,12 @@ import java.io.InputStream
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
 
+    internal open val features = object : StreamFeatures {
+        override val regional get() = false
+        override val hardware get() = false
+        override val mutable get() = null
+    }
+
     abstract fun scaleTo(width: Int, height: Int): BitmapStream
     abstract fun scaleWidth(width: Int): BitmapStream
     abstract fun scaleHeight(height: Int): BitmapStream
@@ -62,6 +68,7 @@ abstract class BitmapStream {
             ImageView.ScaleType.CENTER_CROP -> CenterCropFrameMethod()
             else -> throw IllegalArgumentException()
         }
+        val features = features
         return CanvasBitmapStream(frameWidth, frameHeight) {
             background?.let {
                 draw(it, 0, 0, frameWidth, frameHeight)
@@ -70,7 +77,7 @@ abstract class BitmapStream {
             val destRect = Rect()
             frameMethod.computeBounds(metadata, frameWidth, frameHeight, srcRect, destRect)
             draw(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
-        }
+        }.hardware(features.hardware).mutable(features.mutable)
     }
 
     open fun hardware(hardware: Boolean): BitmapStream {

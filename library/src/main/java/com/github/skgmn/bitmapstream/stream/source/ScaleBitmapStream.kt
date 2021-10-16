@@ -1,5 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.source
 
+import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 

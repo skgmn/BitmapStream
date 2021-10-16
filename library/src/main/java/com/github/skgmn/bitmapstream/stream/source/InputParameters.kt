@@ -25,15 +25,20 @@ internal class InputParameters(
         }
         options.inSampleSize = sampleSize
 
-        mutable?.let { options.inMutable = it }
-        if (hardware) {
-            options.inPreferredConfig = Bitmap.Config.HARDWARE
+        val postScaleX = if (downsampleOnly) 1f else sx
+        val postScaleY = if (downsampleOnly) 1f else sy
+
+        if (postScaleX == 1f && postScaleY == 1f) {
+            mutable?.let { options.inMutable = it }
+            if (hardware) {
+                options.inPreferredConfig = Bitmap.Config.HARDWARE
+            }
         }
 
         return DecodingParameters(
             options = options,
-            postScaleX = if (downsampleOnly) 1f else sx,
-            postScaleY = if (downsampleOnly) 1f else sy,
+            postScaleX = postScaleX,
+            postScaleY = postScaleY,
             region = region
         )
     }

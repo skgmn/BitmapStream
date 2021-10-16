@@ -2,6 +2,7 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
+import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
@@ -20,7 +21,7 @@ internal class RegionBitmapStream(
     }
     override val hasMetadata get() = true
 
-    override val features = object : StreamFeatures {
+    override val features = object : StreamFeatures by other.features {
         override val regional get() = true
     }
 

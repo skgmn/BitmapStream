@@ -2,12 +2,9 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.BitmapStream
+import com.github.skgmn.bitmapstream.StreamFeatures
 
 internal abstract class SourceBitmapStream : BitmapStream() {
-    internal open val features = object : StreamFeatures {
-        override val regional get() = false
-    }
-
     internal open val exactWidth: Double get() = metadata.width.toDouble()
     internal open val exactHeight: Double get() = metadata.height.toDouble()
 

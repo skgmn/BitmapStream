@@ -114,6 +114,8 @@ internal class BitmapDrawer(
                     .region(left, top, right, bottom)
                     .scaleTo(finalBounds.width(), finalBounds.height())
                     .downsampleOnly()
+                    .mutable(null)
+                    .hardware(false)
                     .decode()
                     ?.also {
                         if (!it.hasAlpha() && p?.alpha ?: 0xff == 0xff) {

@@ -3,19 +3,21 @@ package com.github.skgmn.bitmapstream.util
 import android.graphics.Bitmap
 import android.graphics.Matrix
 
-internal fun Bitmap.mutable(mutable: Boolean?): Bitmap {
-    return if (mutable == null || this.isMutable == mutable) {
-        this
-    } else {
-        copy(config, mutable).also { recycle() }
+internal fun Bitmap.characteristic(hardware: Boolean?, mutable: Boolean?): Bitmap {
+    val targetConfig = when (hardware) {
+        true -> Bitmap.Config.HARDWARE
+        false -> if (config == Bitmap.Config.HARDWARE) {
+            Bitmap.Config.ARGB_8888
+        } else {
+            config
+        }
+        else -> config
     }
-}
-
-internal fun Bitmap.hardware(): Bitmap {
-    return if (config == Bitmap.Config.HARDWARE) {
+    val targetMutable = mutable ?: if (hardware == true) false else isMutable
+    return if (config == targetConfig && isMutable == targetMutable) {
         this
     } else {
-        copy(Bitmap.Config.HARDWARE, false).also { recycle() }
+        copy(targetConfig, targetMutable).also { recycle() }
     }
 }
 

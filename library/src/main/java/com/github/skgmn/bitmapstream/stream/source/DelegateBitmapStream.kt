@@ -1,6 +1,7 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
+import com.github.skgmn.bitmapstream.StreamFeatures
 
 internal abstract class DelegateBitmapStream(
     protected val other: SourceBitmapStream

@@ -2,6 +2,7 @@ package com.github.skgmn.bitmapstream.stream.canvas
 
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.BitmapStream
+import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
@@ -28,6 +29,14 @@ internal class CanvasBitmapStream(
         }
         override val mimeType get() = "image/bmp"
         override val densityScale get() = 1f
+    }
+
+    override val features = object : StreamFeatures {
+        override val regional
+            get() = regionLeft != 0 || regionTop != 0 ||
+                    regionRight != canvasWidth || regionBottom != canvasHeight
+        override val mutable: Boolean? get() = null
+        override val hardware get() = false
     }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {

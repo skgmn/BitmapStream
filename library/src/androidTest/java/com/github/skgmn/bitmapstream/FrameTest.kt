@@ -8,6 +8,7 @@ import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.test.R
 import io.mockk.spyk
 import io.mockk.verify
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FrameTest : BitmapTestBase() {
@@ -29,6 +30,27 @@ class FrameTest : BitmapTestBase() {
         val byDecoder = assertNotNull(frameStream.decode())
 
         assertSimilar(byFactory, byDecoder)
+    }
+
+    @Test
+    fun fitCenterHardware() {
+        val res = appContext.resources
+        val source = BitmapFactory.decodeResource(res, R.drawable.nodpi_image)
+        val expected = Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888)
+        Canvas(expected).run {
+            drawColor(Color.RED)
+            drawBitmap(source, null, Rect(0, 40, 200, 160), Paint(Paint.FILTER_BITMAP_FLAG))
+        }
+
+        val sourceStream =
+            BitmapFactoryBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
+                .hardware(true)
+        val frameStream =
+            sourceStream.frame(200, 200, ImageView.ScaleType.FIT_CENTER, ColorDrawable(Color.RED))
+        val actual = assertNotNull(frameStream.decode())
+
+        assertEquals(Bitmap.Config.HARDWARE, actual.config)
+        assertSimilar(expected, actual)
     }
 
     @Test
