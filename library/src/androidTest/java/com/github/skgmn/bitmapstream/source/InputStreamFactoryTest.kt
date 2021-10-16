@@ -32,6 +32,12 @@ class InputStreamFactoryTest : BitmapTestBase() {
         }
 
         val actual = assertNotNull(stream.decode())
+
+        assertEquals(1, sourceSpy.sessions.size)
+        verify(exactly = 2) {
+            sourceSpy.sessions.last().decodeBitmap(any())
+        }
+
         assertEquals(expected.width, width)
         assertEquals(expected.height, height)
         assertSimilar(expected, actual)

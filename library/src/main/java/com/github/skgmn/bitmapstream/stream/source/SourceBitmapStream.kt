@@ -11,13 +11,11 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     internal open val exactWidth: Double get() = metadata.width.toDouble()
     internal open val exactHeight: Double get() = metadata.height.toDouble()
 
-    internal open val hasMetadata get() = false
-
     internal abstract fun buildInputParameters(features: StreamFeatures): InputParameters
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
-        return if (hasMetadata &&
+        return if (hasDimensions &&
             width.toDouble() == exactWidth && height.toDouble() == exactHeight
         ) {
             this
@@ -27,7 +25,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun scaleWidth(width: Int): BitmapStream {
-        return if (hasMetadata && width.toDouble() == exactWidth) {
+        return if (hasDimensions && width.toDouble() == exactWidth) {
             this
         } else {
             ScaleWidthBitmapStream(this, width.toDouble(), 1f)
@@ -35,7 +33,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun scaleHeight(height: Int): BitmapStream {
-        return if (hasMetadata && height.toDouble() == exactHeight) {
+        return if (hasDimensions && height.toDouble() == exactHeight) {
             this
         } else {
             ScaleHeightBitmapStream(this, height.toDouble(), 1f)
@@ -51,7 +49,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return if (hasMetadata && left == 0 && top == 0 &&
+        return if (hasDimensions && left == 0 && top == 0 &&
             right.toDouble() == exactWidth && bottom.toDouble() == exactHeight) {
             this
         } else {

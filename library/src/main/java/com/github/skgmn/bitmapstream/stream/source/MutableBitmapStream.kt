@@ -19,7 +19,7 @@ internal class MutableBitmapStream(
     override fun mutable(mutable: Boolean?): SourceBitmapStream {
         return when (mutable) {
             null -> other
-            this.mutable == mutable -> this
+            this.mutable -> this
             else -> MutableBitmapStream(other, mutable)
         }
     }

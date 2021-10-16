@@ -8,7 +8,7 @@ internal abstract class DelegateBitmapStream(
 ) : SourceBitmapStream() {
     override val metadata get() = other.metadata
     override val features get() = other.features
-    override val hasMetadata get() = other.hasMetadata
+    override val hasDimensions get() = other.hasDimensions
 
     protected abstract fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream
 

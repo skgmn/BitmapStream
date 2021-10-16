@@ -19,7 +19,7 @@ internal class RegionBitmapStream(
         override val mimeType: String? get() = other.metadata.mimeType
         override val densityScale: Float get() = other.metadata.densityScale
     }
-    override val hasMetadata get() = true
+    override val hasDimensions get() = true
 
     override val features = object : StreamFeatures by other.features {
         override val regional get() = true

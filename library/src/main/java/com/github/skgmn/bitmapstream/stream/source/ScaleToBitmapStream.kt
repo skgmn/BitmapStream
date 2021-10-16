@@ -15,7 +15,7 @@ internal class ScaleToBitmapStream(
     }
     override val exactWidth get() = targetWidth
     override val exactHeight get() = targetHeight
-    override val hasMetadata get() = true
+    override val hasDimensions get() = true
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return if (this.targetWidth == width.toDouble() && this.targetHeight == height.toDouble()) {

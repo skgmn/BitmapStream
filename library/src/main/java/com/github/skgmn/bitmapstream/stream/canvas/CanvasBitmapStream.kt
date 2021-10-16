@@ -29,6 +29,7 @@ internal class CanvasBitmapStream(
         }
         override val mimeType get() = "image/bmp"
     }
+    override val hasDimensions get() = true
 
     override val features = object : StreamFeatures {
         override val regional
