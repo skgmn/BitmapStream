@@ -33,7 +33,6 @@ internal class BitmapFactoryBitmapStream(
             override val densityScale: Float get() = get().densityScale
         }
 
-    override val hasDimensions get() = statefulMetadata.get() is DecodedBitmapMetadata
     override val metadata: ExtendedBitmapMetadata get() = statefulMetadata
 
     private fun peekSession(): DecodeSession {

@@ -6,7 +6,6 @@ internal abstract class TransformBitmapStream(
     protected val other: BitmapStream
 ) : BitmapStream() {
     override val metadata get() = other.metadata
-    override val hasDimensions get() = other.hasDimensions
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return replaceUpstream(other.scaleTo(width, height))

@@ -17,8 +17,6 @@ internal class LazyOperatorRegion(
     override val simulatedWidth get() = (right - left).toDouble()
     override val simulatedHeight get() = (bottom - top).toDouble()
 
-    override val hasDimensions get() = true
-
     override fun replaceUpstream(new: LazyBitmapStream): LazyBitmapStream {
         return LazyOperatorRegion(new, left, top, right, bottom)
     }

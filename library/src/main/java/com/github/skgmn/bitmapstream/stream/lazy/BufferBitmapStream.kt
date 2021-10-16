@@ -7,7 +7,6 @@ internal class BufferBitmapStream(
     private val other: BitmapStream
 ) : LazyBitmapStream() {
     override val metadata get() = other.metadata
-    override val hasDimensions get() = other.hasDimensions
     override val simulatedWidth get() = other.metadata.width.toDouble()
     override val simulatedHeight get() = other.metadata.height.toDouble()
 

@@ -8,7 +8,6 @@ internal abstract class SourceOperator(
 ) : SourceBitmapStream() {
     override val metadata get() = other.metadata
     override val features get() = other.features
-    override val hasDimensions get() = other.hasDimensions
 
     protected abstract fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream
 

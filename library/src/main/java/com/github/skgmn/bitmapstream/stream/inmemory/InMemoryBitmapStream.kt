@@ -24,7 +24,6 @@ internal class InMemoryBitmapStream(
         }
         override val mimeType get() = "image/bmp"
     }
-    override val hasDimensions get() = true
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return if (width == metadata.width && height == metadata.height) {

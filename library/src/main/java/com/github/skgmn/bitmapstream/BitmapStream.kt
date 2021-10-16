@@ -22,7 +22,6 @@ import java.io.File
 
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
-    abstract val hasDimensions: Boolean
 
     internal open val features = object : StreamFeatures {
         override val regional get() = false

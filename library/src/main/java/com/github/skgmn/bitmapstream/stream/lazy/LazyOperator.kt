@@ -15,7 +15,6 @@ internal abstract class LazyOperator(
 
     override val simulatedWidth get() = other.simulatedWidth
     override val simulatedHeight get() = other.simulatedHeight
-    override val hasDimensions get() = other.hasDimensions
 
     protected abstract fun replaceUpstream(new: LazyBitmapStream): LazyBitmapStream
 

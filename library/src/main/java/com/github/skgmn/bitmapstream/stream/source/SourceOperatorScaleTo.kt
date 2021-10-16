@@ -15,7 +15,6 @@ internal class SourceOperatorScaleTo(
     }
     override val exactWidth get() = targetWidth
     override val exactHeight get() = targetHeight
-    override val hasDimensions get() = true
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return if (this.targetWidth == width.toDouble() && this.targetHeight == height.toDouble()) {
