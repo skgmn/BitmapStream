@@ -2,7 +2,7 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
 
-internal class ScaleByBitmapStream(
+internal class SourceOperatorScaleBy(
     other: SourceBitmapStream,
     override val scaleX: Float,
     override val scaleY: Float
@@ -32,7 +32,7 @@ internal class ScaleByBitmapStream(
         return if (other === new) {
             this
         } else {
-            ScaleByBitmapStream(new, scaleX, scaleY)
+            SourceOperatorScaleBy(new, scaleX, scaleY)
         }
     }
 }

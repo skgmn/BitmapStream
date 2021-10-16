@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.source
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.StreamFeatures
 
-internal abstract class DelegateBitmapStream(
+internal abstract class SourceOperator(
     protected val other: SourceBitmapStream
 ) : SourceBitmapStream() {
     override val metadata get() = other.metadata
@@ -16,14 +16,14 @@ internal abstract class DelegateBitmapStream(
         val mutableCleared = replaceUpstream(other.mutable(null))
         return when (mutable) {
             null -> mutableCleared
-            else -> MutableBitmapStream(mutableCleared, mutable)
+            else -> SourceOperatorMutable(mutableCleared, mutable)
         }
     }
 
     override fun hardware(hardware: Boolean): SourceBitmapStream {
         val hardwareCleared = replaceUpstream(other.hardware(false))
         return if (hardware) {
-            HardwareBitmapStream(hardwareCleared)
+            SourceOperatorHardware(hardwareCleared)
         } else {
             hardwareCleared
         }

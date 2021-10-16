@@ -23,14 +23,14 @@ internal abstract class LazyOperator(
         val mutableCleared = replaceUpstream(other.mutable(null))
         return when (mutable) {
             null -> mutableCleared
-            else -> LazyMutable(mutableCleared, mutable)
+            else -> LazyOperatorMutable(mutableCleared, mutable)
         }
     }
 
     override fun hardware(hardware: Boolean): LazyBitmapStream {
         val hardwareCleared = replaceUpstream(other.hardware(false))
         return if (hardware) {
-            LazyHardware(hardwareCleared)
+            LazyOperatorHardware(hardwareCleared)
         } else {
             hardwareCleared
         }

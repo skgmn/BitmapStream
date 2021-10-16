@@ -2,9 +2,9 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.StreamFeatures
 
-internal class HardwareBitmapStream(
+internal class SourceOperatorHardware(
     other: SourceBitmapStream
-) : DelegateBitmapStream(other) {
+) : SourceOperator(other) {
     override val features = object : StreamFeatures by other.features {
         override val hardware get() = true
         override val mutable: Boolean? get() = null
@@ -18,7 +18,7 @@ internal class HardwareBitmapStream(
         return if (other === new) {
             this
         } else {
-            HardwareBitmapStream(new)
+            SourceOperatorHardware(new)
         }
     }
 

@@ -2,7 +2,7 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.StreamFeatures
 
-internal class DownsampleOnlyBitmapStream(other: SourceBitmapStream) : DelegateBitmapStream(other) {
+internal class SourceOperatorDownsampleOnly(other: SourceBitmapStream) : SourceOperator(other) {
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
         return other.buildInputParameters(features).apply {
             downsampleOnly = true
@@ -13,7 +13,7 @@ internal class DownsampleOnlyBitmapStream(other: SourceBitmapStream) : DelegateB
         return if (other === new) {
             this
         } else {
-            DownsampleOnlyBitmapStream(new)
+            SourceOperatorDownsampleOnly(new)
         }
     }
 }

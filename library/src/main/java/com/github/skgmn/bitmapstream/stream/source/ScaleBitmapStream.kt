@@ -6,7 +6,7 @@ import kotlin.math.roundToInt
 
 internal abstract class ScaleBitmapStream(
     other: SourceBitmapStream
-): DelegateBitmapStream(other) {
+): SourceOperator(other) {
     abstract val scaleX: Float
     abstract val scaleY: Float
 

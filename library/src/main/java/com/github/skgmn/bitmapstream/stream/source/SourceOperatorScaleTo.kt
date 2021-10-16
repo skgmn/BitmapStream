@@ -2,7 +2,7 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
 
-internal class ScaleToBitmapStream(
+internal class SourceOperatorScaleTo(
     other: SourceBitmapStream,
     private val targetWidth: Double,
     private val targetHeight: Double
@@ -30,7 +30,7 @@ internal class ScaleToBitmapStream(
             this
         } else {
             val scale = width / targetWidth
-            ScaleToBitmapStream(other, width.toDouble(), targetHeight * scale)
+            SourceOperatorScaleTo(other, width.toDouble(), targetHeight * scale)
         }
     }
 
@@ -39,7 +39,7 @@ internal class ScaleToBitmapStream(
             this
         } else {
             val scale = height / targetHeight
-            ScaleToBitmapStream(other, targetWidth * scale, height.toDouble())
+            SourceOperatorScaleTo(other, targetWidth * scale, height.toDouble())
         }
     }
 
@@ -47,7 +47,7 @@ internal class ScaleToBitmapStream(
         return if (scaleWidth == 1f && scaleHeight == 1f) {
             this
         } else {
-            ScaleToBitmapStream(other, targetWidth * scaleWidth, targetHeight * scaleHeight)
+            SourceOperatorScaleTo(other, targetWidth * scaleWidth, targetHeight * scaleHeight)
         }
     }
 
@@ -55,7 +55,7 @@ internal class ScaleToBitmapStream(
         return if (other === new) {
             this
         } else {
-            ScaleToBitmapStream(new, targetWidth, targetHeight)
+            SourceOperatorScaleTo(new, targetWidth, targetHeight)
         }
     }
 }

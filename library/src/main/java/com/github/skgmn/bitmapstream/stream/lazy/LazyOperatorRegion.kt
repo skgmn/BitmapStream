@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.lazy
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
 
-internal class LazyRegion(
+internal class LazyOperatorRegion(
     other: LazyBitmapStream,
     private val left: Int,
     private val top: Int,
@@ -20,7 +20,7 @@ internal class LazyRegion(
     override val hasDimensions get() = true
 
     override fun replaceUpstream(new: LazyBitmapStream): LazyBitmapStream {
-        return LazyRegion(new, left, top, right, bottom)
+        return LazyOperatorRegion(new, left, top, right, bottom)
     }
 
     override fun buildStream(): BitmapStream? {

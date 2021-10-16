@@ -20,7 +20,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         ) {
             this
         } else {
-            ScaleToBitmapStream(this, width.toDouble(), height.toDouble())
+            SourceOperatorScaleTo(this, width.toDouble(), height.toDouble())
         }
     }
 
@@ -28,7 +28,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         return if (hasDimensions && width.toDouble() == exactWidth) {
             this
         } else {
-            ScaleWidthBitmapStream(this, width.toDouble(), 1f)
+            SourceOperatorScaleWidth(this, width.toDouble(), 1f)
         }
     }
 
@@ -36,7 +36,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         return if (hasDimensions && height.toDouble() == exactHeight) {
             this
         } else {
-            ScaleHeightBitmapStream(this, height.toDouble(), 1f)
+            SourceOperatorScaleHeight(this, height.toDouble(), 1f)
         }
     }
 
@@ -44,7 +44,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         return if (scaleWidth == 1f && scaleHeight == 1f) {
             this
         } else {
-            ScaleByBitmapStream(this, scaleWidth, scaleHeight)
+            SourceOperatorScaleBy(this, scaleWidth, scaleHeight)
         }
     }
 
@@ -53,7 +53,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
             right.toDouble() == exactWidth && bottom.toDouble() == exactHeight) {
             this
         } else {
-            RegionBitmapStream(this, left, top, right, bottom)
+            SourceOperatorRegion(this, left, top, right, bottom)
         }
     }
 
@@ -61,20 +61,20 @@ internal abstract class SourceBitmapStream : BitmapStream() {
         return if (mutable == null) {
             this
         } else {
-            MutableBitmapStream(this, mutable)
+            SourceOperatorMutable(this, mutable)
         }
     }
 
     override fun hardware(hardware: Boolean): SourceBitmapStream {
         return if (hardware) {
-            HardwareBitmapStream(this)
+            SourceOperatorHardware(this)
         } else {
             this
         }
     }
 
     override fun downsampleOnly(): BitmapStream {
-        return DownsampleOnlyBitmapStream(this)
+        return SourceOperatorDownsampleOnly(this)
     }
 
     override fun decode(): Bitmap? {

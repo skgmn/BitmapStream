@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.lazy
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
 
-internal class LazyHardware(other: LazyBitmapStream) : LazyOperator(other) {
+internal class LazyOperatorHardware(other: LazyBitmapStream) : LazyOperator(other) {
     override val features = object : StreamFeatures by other.features {
         override val hardware get() = true
         override val mutable: Boolean? get() = null
@@ -14,7 +14,7 @@ internal class LazyHardware(other: LazyBitmapStream) : LazyOperator(other) {
     }
 
     override fun replaceUpstream(new: LazyBitmapStream): LazyBitmapStream {
-        return LazyHardware(new)
+        return LazyOperatorHardware(new)
     }
 
     override fun buildStream(): BitmapStream? {

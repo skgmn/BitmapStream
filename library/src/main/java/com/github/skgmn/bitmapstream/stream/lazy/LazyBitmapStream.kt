@@ -16,7 +16,7 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         ) {
             this
         } else {
-            LazyScaleTo(this, width, height)
+            LazyOperatorScaleTo(this, width, height)
         }
     }
 
@@ -24,7 +24,7 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         return if (hasDimensions && simulatedWidth == width.toDouble()) {
             this
         } else {
-            LazyScaleWidth(this, width)
+            LazyOperatorScaleWidth(this, width)
         }
     }
 
@@ -32,7 +32,7 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         return if (hasDimensions && simulatedHeight == height.toDouble()) {
             this
         } else {
-            LazyScaleHeight(this, height)
+            LazyOperatorScaleHeight(this, height)
         }
     }
 
@@ -40,7 +40,7 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         return if (scaleWidth == 1f && scaleHeight == 1f) {
             this
         } else {
-            LazyScaleBy(this, scaleWidth, scaleHeight)
+            LazyOperatorScaleBy(this, scaleWidth, scaleHeight)
         }
     }
 
@@ -50,7 +50,7 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         ) {
             this
         } else {
-            LazyRegion(this, left, top, right, bottom)
+            LazyOperatorRegion(this, left, top, right, bottom)
         }
     }
 
@@ -58,13 +58,13 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         return if (mutable == null) {
             this
         } else {
-            LazyMutable(this, mutable)
+            LazyOperatorMutable(this, mutable)
         }
     }
 
     override fun hardware(hardware: Boolean): LazyBitmapStream {
         return if (hardware) {
-            LazyHardware(this)
+            LazyOperatorHardware(this)
         } else {
             this
         }

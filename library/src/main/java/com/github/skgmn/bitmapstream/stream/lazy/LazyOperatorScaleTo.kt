@@ -2,7 +2,7 @@ package com.github.skgmn.bitmapstream.stream.lazy
 
 import com.github.skgmn.bitmapstream.BitmapStream
 
-internal class LazyScaleTo(
+internal class LazyOperatorScaleTo(
     other: LazyBitmapStream,
     private val width: Int,
     private val height: Int
@@ -21,7 +21,7 @@ internal class LazyScaleTo(
     }
 
     override fun replaceUpstream(new: LazyBitmapStream): LazyBitmapStream {
-        return LazyScaleTo(new, width, height)
+        return LazyOperatorScaleTo(new, width, height)
     }
 
     override fun buildStream(): BitmapStream? {

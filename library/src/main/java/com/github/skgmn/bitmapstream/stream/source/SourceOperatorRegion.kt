@@ -6,13 +6,13 @@ import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.ExtendedBitmapMetadata
 import kotlin.math.roundToInt
 
-internal class RegionBitmapStream(
+internal class SourceOperatorRegion(
     other: SourceBitmapStream,
     private val left: Int,
     private val top: Int,
     private val right: Int,
     private val bottom: Int
-) : DelegateBitmapStream(other) {
+) : SourceOperator(other) {
     override val metadata = object : ExtendedBitmapMetadata {
         override val width: Int get() = right - left
         override val height: Int get() = bottom - top
@@ -31,7 +31,7 @@ internal class RegionBitmapStream(
         } else {
             val newLeft = this.left + left
             val newTop = this.top + top
-            RegionBitmapStream(
+            SourceOperatorRegion(
                 other,
                 newLeft,
                 newTop,
@@ -66,7 +66,7 @@ internal class RegionBitmapStream(
         return if (other === new) {
             this
         } else {
-            RegionBitmapStream(new, left, top, right, bottom)
+            SourceOperatorRegion(new, left, top, right, bottom)
         }
     }
 }
