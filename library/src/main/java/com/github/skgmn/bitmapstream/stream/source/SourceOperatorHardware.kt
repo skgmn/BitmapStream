@@ -2,6 +2,7 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.StreamFeatures
 
+@Suppress("EqualsOrHashCode")
 internal class SourceOperatorHardware(
     other: SourceBitmapStream
 ) : SourceOperator(other) {
@@ -27,5 +28,11 @@ internal class SourceOperatorHardware(
             hardware = true
             mutable = null
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SourceOperatorHardware) return false
+        return super.equals(other)
     }
 }

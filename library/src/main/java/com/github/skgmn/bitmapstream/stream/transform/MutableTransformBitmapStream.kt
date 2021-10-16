@@ -42,4 +42,20 @@ internal class MutableTransformBitmapStream(
         }
         return stream.decode()?.characteristic(null, mutable)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MutableTransformBitmapStream) return false
+        if (!super.equals(other)) return false
+
+        if (mutable != other.mutable) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + mutable.hashCode()
+        return result
+    }
 }

@@ -45,4 +45,16 @@ internal abstract class TransformBitmapStream(
     }
 
     protected abstract fun replaceUpstream(new: BitmapStream): BitmapStream
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TransformBitmapStream) return false
+
+        if (this.other != other.other) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return other.hashCode()
+    }
 }

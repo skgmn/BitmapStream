@@ -31,4 +31,22 @@ internal class SourceOperatorScaleBy(
             SourceOperatorScaleBy(new, scaleX, scaleY)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SourceOperatorScaleBy) return false
+        if (!super.equals(other)) return false
+
+        if (scaleX != other.scaleX) return false
+        if (scaleY != other.scaleY) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + scaleX.hashCode()
+        result = 31 * result + scaleY.hashCode()
+        return result
+    }
 }

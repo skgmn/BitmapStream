@@ -1,7 +1,6 @@
 package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
@@ -44,6 +43,19 @@ internal class FitGravityFrameMethod(
                 else -> outDest[0, 0, targetWidth] = targetHeight
             }
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FitGravityFrameMethod) return false
+
+        if (gravity != other.gravity) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return gravity
     }
 
     companion object {

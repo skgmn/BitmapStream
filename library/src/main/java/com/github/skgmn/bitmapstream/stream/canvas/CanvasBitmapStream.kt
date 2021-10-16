@@ -15,6 +15,7 @@ internal class CanvasBitmapStream(
     private val regionBottom: Int = canvasHeight,
     private val scaleX: Float = 1f,
     private val scaleY: Float = 1f,
+    private val key: Any? = null,
     private val draw: DrawScope.() -> Unit
 ) : BitmapStream() {
     override val metadata = object : BitmapMetadata {
@@ -51,6 +52,7 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 width / exactWidth,
                 height / exactHeight,
+                key,
                 draw
             )
         }
@@ -70,6 +72,7 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 scaleX * scale,
                 scaleY * scale,
+                null,
                 draw
             )
         }
@@ -89,6 +92,7 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 scaleX * scale,
                 scaleY * scale,
+                null,
                 draw
             )
         }
@@ -107,6 +111,7 @@ internal class CanvasBitmapStream(
                 regionBottom,
                 scaleX * scaleWidth,
                 scaleY * scaleHeight,
+                null,
                 draw
             )
         }
@@ -127,6 +132,7 @@ internal class CanvasBitmapStream(
                 (regionTop + bottom / scaleY).roundToInt(),
                 scaleX,
                 scaleY,
+                null,
                 draw
             )
         }
@@ -141,5 +147,35 @@ internal class CanvasBitmapStream(
         )
         drawer.draw()
         return drawer.makeBitmap()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CanvasBitmapStream) return false
+
+        if (canvasWidth != other.canvasWidth) return false
+        if (canvasHeight != other.canvasHeight) return false
+        if (regionLeft != other.regionLeft) return false
+        if (regionTop != other.regionTop) return false
+        if (regionRight != other.regionRight) return false
+        if (regionBottom != other.regionBottom) return false
+        if (scaleX != other.scaleX) return false
+        if (scaleY != other.scaleY) return false
+        if (key != other.key) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = canvasWidth
+        result = 31 * result + canvasHeight
+        result = 31 * result + regionLeft
+        result = 31 * result + regionTop
+        result = 31 * result + regionRight
+        result = 31 * result + regionBottom
+        result = 31 * result + scaleX.hashCode()
+        result = 31 * result + scaleY.hashCode()
+        result = 31 * result + (key?.hashCode() ?: 0)
+        return result
     }
 }

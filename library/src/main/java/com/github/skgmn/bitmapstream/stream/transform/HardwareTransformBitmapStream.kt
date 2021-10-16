@@ -28,4 +28,10 @@ internal class HardwareTransformBitmapStream(
     override fun decode(): Bitmap? {
         return other.mutable(null).decode()?.characteristic(true, false)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is HardwareTransformBitmapStream) return false
+        return super.equals(other)
+    }
 }

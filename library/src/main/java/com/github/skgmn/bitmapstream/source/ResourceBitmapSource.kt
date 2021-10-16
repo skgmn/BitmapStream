@@ -40,4 +40,17 @@ internal class ResourceBitmapSource(
             super.generateInputParameters(features, metadata)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ResourceBitmapSource) return false
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return id
+    }
 }

@@ -19,4 +19,17 @@ internal class FileBitmapSource(
             return regionDecoder.decodeRegion(region, options)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FileBitmapSource) return false
+
+        if (file != other.file) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return file.hashCode()
+    }
 }

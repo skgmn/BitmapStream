@@ -111,4 +111,30 @@ internal class InMemoryBitmapStream(
             )
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is InMemoryBitmapStream) return false
+
+        if (bitmap != other.bitmap) return false
+        if (left != other.left) return false
+        if (top != other.top) return false
+        if (right != other.right) return false
+        if (bottom != other.bottom) return false
+        if (scaleX != other.scaleX) return false
+        if (scaleY != other.scaleY) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = bitmap.hashCode()
+        result = 31 * result + left
+        result = 31 * result + top
+        result = 31 * result + right
+        result = 31 * result + bottom
+        result = 31 * result + scaleX.hashCode()
+        result = 31 * result + scaleY.hashCode()
+        return result
+    }
 }

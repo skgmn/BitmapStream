@@ -7,6 +7,7 @@ import android.graphics.Rect
 import okio.buffer
 
 internal class SourceFactoryBitmapSource(
+    private val key: Any? = null,
     private val factory: SourceFactory
 ) : BitmapSource() {
     override fun createDecodeSession(): DecodeSession {
@@ -30,5 +31,21 @@ internal class SourceFactoryBitmapSource(
                     .decodeRegion(region, options)
             }
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SourceFactoryBitmapSource) return false
+
+        if (key != null) {
+            if (key != other.key) return false
+            return true
+        } else {
+            return false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return key?.hashCode() ?: 0
     }
 }

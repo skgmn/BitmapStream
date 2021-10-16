@@ -45,4 +45,22 @@ internal class SourceOperatorScaleHeight(
             SourceOperatorScaleHeight(new, targetHeight, widthScale)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SourceOperatorScaleHeight) return false
+        if (!super.equals(other)) return false
+
+        if (targetHeight != other.targetHeight) return false
+        if (widthScale != other.widthScale) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + targetHeight.hashCode()
+        result = 31 * result + widthScale.hashCode()
+        return result
+    }
 }

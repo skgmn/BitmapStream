@@ -32,4 +32,20 @@ internal class LazyOperatorMutable(
     override fun buildStream(): BitmapStream? {
         return other.buildStream()?.mutable(mutable)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LazyOperatorMutable) return false
+        if (!super.equals(other)) return false
+
+        if (mutable != other.mutable) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + mutable.hashCode()
+        return result
+    }
 }

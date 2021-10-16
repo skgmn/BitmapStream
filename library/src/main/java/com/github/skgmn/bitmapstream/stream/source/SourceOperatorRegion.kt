@@ -68,4 +68,26 @@ internal class SourceOperatorRegion(
             SourceOperatorRegion(new, left, top, right, bottom)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SourceOperatorRegion) return false
+        if (!super.equals(other)) return false
+
+        if (left != other.left) return false
+        if (top != other.top) return false
+        if (right != other.right) return false
+        if (bottom != other.bottom) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + left
+        result = 31 * result + top
+        result = 31 * result + right
+        result = 31 * result + bottom
+        return result
+    }
 }

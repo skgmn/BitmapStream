@@ -70,7 +70,11 @@ abstract class BitmapStream {
             else -> throw IllegalArgumentException()
         }
         val features = features
-        return CanvasBitmapStream(frameWidth, frameHeight) {
+        return CanvasBitmapStream(
+            canvasWidth = frameWidth,
+            canvasHeight = frameHeight,
+            key = FrameKey(this, frameMethod)
+        ) {
             background?.let {
                 draw(it, 0, 0, frameWidth, frameHeight)
             }
@@ -93,6 +97,27 @@ abstract class BitmapStream {
         return this
     }
 
+    private class FrameKey(
+        private val stream: BitmapStream,
+        private val frameMethod: FrameMethod
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is FrameKey) return false
+
+            if (stream != other.stream) return false
+            if (frameMethod != other.frameMethod) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = stream.hashCode()
+            result = 31 * result + frameMethod.hashCode()
+            return result
+        }
+    }
+
     companion object {
         @JvmStatic
         fun fromAsset(assetManager: AssetManager, path: String): BitmapStream {
@@ -100,13 +125,18 @@ abstract class BitmapStream {
         }
 
         @JvmStatic
-        fun fromByteArray(array: ByteArray): BitmapStream {
-            return fromByteArray(array, 0, array.size)
+        fun fromByteArray(array: ByteArray, key: Any? = null): BitmapStream {
+            return fromByteArray(array, 0, array.size, key)
         }
 
         @JvmStatic
-        fun fromByteArray(array: ByteArray, offset: Int, length: Int): BitmapStream {
-            return BitmapFactoryBitmapStream(ByteArrayBitmapSource(array, offset, length))
+        fun fromByteArray(
+            array: ByteArray,
+            offset: Int,
+            length: Int,
+            key: Any? = null
+        ): BitmapStream {
+            return BitmapFactoryBitmapStream(ByteArrayBitmapSource(array, offset, length, key))
         }
 
         @JvmStatic
@@ -120,15 +150,15 @@ abstract class BitmapStream {
         }
 
         @JvmStatic
-        fun fromInputStreamFactory(factory: InputStreamFactory): BitmapStream {
-            return BitmapFactoryBitmapStream(SourceFactoryBitmapSource {
+        fun fromInputStreamFactory(key: Any? = null, factory: InputStreamFactory): BitmapStream {
+            return BitmapFactoryBitmapStream(SourceFactoryBitmapSource(key) {
                 factory.createInputStream().source()
             })
         }
 
         @JvmStatic
-        fun fromSourceFactory(factory: SourceFactory): BitmapStream {
-            return BitmapFactoryBitmapStream(SourceFactoryBitmapSource(factory))
+        fun fromSourceFactory(key: Any? = null, factory: SourceFactory): BitmapStream {
+            return BitmapFactoryBitmapStream(SourceFactoryBitmapSource(key, factory))
         }
 
         @JvmStatic

@@ -80,4 +80,17 @@ internal class BitmapFactoryBitmapStream(
             ?.scaleBy(params.postScaleX, params.postScaleY)
             ?.characteristic(inputParameters.hardware, inputParameters.mutable)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is BitmapFactoryBitmapStream) return false
+
+        if (source != other.source) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return source.hashCode()
+    }
 }

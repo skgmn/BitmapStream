@@ -25,4 +25,22 @@ internal class LazyOperatorScaleTo(
     override fun buildStream(): BitmapStream? {
         return other.buildStream()?.scaleTo(width, height)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LazyOperatorScaleTo) return false
+        if (!super.equals(other)) return false
+
+        if (width != other.width) return false
+        if (height != other.height) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + width
+        result = 31 * result + height
+        return result
+    }
 }
