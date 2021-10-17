@@ -159,4 +159,22 @@ class RegionTest : BitmapTestBase() {
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)
     }
+
+    @Test
+    fun entireArea() {
+        val expected =
+            BitmapFactory.decodeResource(appContext.resources, R.drawable.mdpi_image, null)
+
+        val source = ResourceBitmapSource(
+            appContext.resources,
+            R.drawable.mdpi_image
+        )
+        val decoder = BitmapFactoryBitmapStream(source)
+            .region(0, 0, expected.width, expected.height)
+        assertEquals(decoder.metadata.width, expected.width)
+        assertEquals(decoder.metadata.height, expected.height)
+        val actual = assertNotNull(decoder.decode())
+
+        assertSimilar(actual, expected)
+    }
 }

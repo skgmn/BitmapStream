@@ -6,18 +6,55 @@ import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.BitmapTestBase
 import com.github.skgmn.bitmapstream.test.R
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 
 class ResourceTest : BitmapTestBase() {
-    @Test
-    fun regionDensityScaling() {
-        val resIds = arrayOf(
+    private lateinit var resIds: IntArray
+
+    @Before
+    override fun setUp() {
+        super.setUp()
+        resIds = intArrayOf(
             R.drawable.mdpi_image,
             R.drawable.hdpi_image,
             R.drawable.xhdpi_image,
             R.drawable.xxhdpi_image,
             R.drawable.xxxhdpi_image
         )
+    }
+
+    @Test
+    fun dimensions() {
+        val res = appContext.resources
+        resIds.forEach { id ->
+            val idName = res.getResourceName(id)
+            val expected = BitmapFactory.decodeResource(res, id)
+
+            val stream = BitmapStream.fromResource(res, id)
+            assertEquals(
+                "resId=$idName, expected width=${expected.width}, metadata width=${stream.metadata.width}",
+                expected.width,
+                stream.metadata.width
+            )
+            assertEquals(
+                "resId=$idName, expected height=${expected.height}, metadata height=${stream.metadata.height}",
+                expected.height,
+                stream.metadata.height
+            )
+
+            val actual = assertNotNull(stream.decode())
+            assertEquals(
+                "resId=$idName, expected density=${expected.density}, metadata density=${actual.density}",
+                expected.density,
+                actual.density
+            )
+            assertSimilar(expected, actual)
+        }
+    }
+
+    @Test
+    fun regionDensityScaling() {
         val res = appContext.resources
         resIds.forEach { id ->
             val bitmap = BitmapFactory.decodeResource(res, id)

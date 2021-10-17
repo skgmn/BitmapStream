@@ -4,12 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import androidx.annotation.CallSuper
 import androidx.test.core.app.ApplicationProvider
 import com.github.skgmn.bitmapstream.source.BitmapSource
 import com.github.skgmn.bitmapstream.source.DecodeSession
 import io.mockk.every
 import io.mockk.spyk
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -20,8 +22,9 @@ abstract class BitmapTestBase {
         ApplicationProvider.getApplicationContext()
     }
 
+    @CallSuper
     @Before
-    fun setUp() {
+    open fun setUp() {
         System.loadLibrary("opencv_java4")
     }
 
@@ -86,9 +89,8 @@ abstract class BitmapTestBase {
     }
 
     protected fun assertSimilar(expected: Bitmap, actual: Bitmap) {
-        if (expected.width != actual.width || expected.height != actual.height) {
-            throw AssertionError("Bitmaps should have same size")
-        }
+        assertEquals(expected.width, actual.width)
+        assertEquals(expected.height, actual.height)
 
         val expectedSoftware = ensureSoftware(expected)
         val actualSoftware = ensureSoftware(actual)
