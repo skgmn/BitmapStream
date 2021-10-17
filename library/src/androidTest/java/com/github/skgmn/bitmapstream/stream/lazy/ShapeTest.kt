@@ -57,4 +57,29 @@ class ShapeTest : BitmapTestBase() {
             assertSimilar(expected, actual)
         }
     }
+
+    @Test
+    fun partialRoundRect() {
+        val res = appContext.resources
+        val radius = 64f
+        allResources {
+            val bitmap = BitmapFactory.decodeResource(res, it)
+            val expected = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(expected)
+            val p = Paint(Paint.ANTI_ALIAS_FLAG)
+            p.color = Color.WHITE
+            val w = bitmap.width.toFloat()
+            val h = bitmap.height.toFloat()
+            canvas.drawRoundRect(0f, 0f, w, h, radius, radius, p)
+            canvas.drawRect(0f, h - radius, w, h, p)
+            p.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+            canvas.drawBitmap(bitmap, 0f, 0f, p)
+
+            val stream = BitmapStream.fromResource(res, it)
+                .shape(Shape.roundRect(radius, radius, 0f, 0f))
+            val actual = assertNotNull(stream.decode())
+
+            assertSimilar(expected, actual)
+        }
+    }
 }
