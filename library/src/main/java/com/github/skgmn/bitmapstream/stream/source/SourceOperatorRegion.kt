@@ -20,16 +20,7 @@ internal class SourceOperatorRegion(
     }
 
     override val features = object : StreamFeatures by other.features {
-        override val regional: Boolean
-            get() {
-                return if (left == 0 && top == 0 &&
-                    right == other.size.width && bottom == other.size.height
-                ) {
-                    other.features.regional
-                } else {
-                    true
-                }
-            }
+        override val regional get() = true
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
@@ -49,12 +40,15 @@ internal class SourceOperatorRegion(
     }
 
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return other.buildInputParameters(features).apply {
-            if (left == 0 && top == 0 &&
+        val entireRegion = left == 0 && top == 0 &&
                 right == other.size.width && bottom == other.size.height
-            ) {
-                return@apply
-            }
+        val modifiedFeatures = if (entireRegion) {
+            other.features
+        } else {
+            features
+        }
+        return other.buildInputParameters(modifiedFeatures).apply {
+            if (entireRegion) return@apply
 
             val width = size.width
             val height = size.height
