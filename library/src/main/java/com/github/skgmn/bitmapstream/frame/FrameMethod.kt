@@ -1,11 +1,11 @@
 package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 
 interface FrameMethod {
     fun computeBounds(
-        metadata: BitmapMetadata,
+        size: BitmapSize,
         frameWidth: Int,
         frameHeight: Int,
         outSrc: Rect,

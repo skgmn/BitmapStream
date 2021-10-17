@@ -1,20 +1,20 @@
 package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 import kotlin.math.roundToInt
 
 internal class CenterCropFrameMethod : FrameMethod {
     override fun computeBounds(
-        metadata: BitmapMetadata,
+        size: BitmapSize,
         frameWidth: Int,
         frameHeight: Int,
         outSrc: Rect,
         outDest: Rect
     ) {
-        val width = metadata.width
-        val height = metadata.height
+        val width = size.width
+        val height = size.height
         val targetWidth: Int
         var targetHeight: Int = AspectRatioCalculator.getHeight(width, height, frameWidth)
         if (targetHeight >= frameHeight) {

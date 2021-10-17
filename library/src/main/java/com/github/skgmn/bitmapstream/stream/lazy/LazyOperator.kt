@@ -1,15 +1,14 @@
 package com.github.skgmn.bitmapstream.stream.lazy
 
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import kotlin.math.roundToInt
 
 internal abstract class LazyOperator(
     protected val other: LazyBitmapStream
 ) : LazyBitmapStream() {
-    override val metadata = object : BitmapMetadata {
+    override val size = object : BitmapSize {
         override val width get() = simulatedWidth.roundToInt()
         override val height get() = simulatedHeight.roundToInt()
-        override val mimeType get() = other.metadata.mimeType
     }
     override val features get() = other.features
 

@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.inmemory
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import kotlin.math.roundToInt
 
 internal class InMemoryBitmapStream(
@@ -15,10 +15,9 @@ internal class InMemoryBitmapStream(
     private val scaleX: Float = 1f,
     private val scaleY: Float = 1f
 ) : BitmapStream() {
-    override val metadata = object : BitmapMetadata {
+    override val size = object : BitmapSize {
         override val width get() = exactWidth.roundToInt()
         override val height get() = exactHeight.roundToInt()
-        override val mimeType get() = "image/bmp"
     }
 
     private val exactWidth by lazy(LazyThreadSafetyMode.NONE) {

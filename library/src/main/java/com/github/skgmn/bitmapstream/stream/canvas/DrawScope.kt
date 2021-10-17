@@ -43,7 +43,7 @@ interface DrawScope {
     }
 
     fun draw(stream: BitmapStream, left: Int, top: Int, paint: Paint?) {
-        draw(stream, left, top, left + stream.metadata.width, top + stream.metadata.height, paint)
+        draw(stream, left, top, left + stream.size.width, top + stream.size.height, paint)
     }
 
     fun draw(
@@ -57,7 +57,7 @@ interface DrawScope {
     }
 
     fun draw(stream: BitmapStream, left: Int, top: Int, shape: Shape) {
-        draw(stream, left, top, left + stream.metadata.width, top + stream.metadata.height, shape)
+        draw(stream, left, top, left + stream.size.width, top + stream.size.height, shape)
     }
 
     fun draw(

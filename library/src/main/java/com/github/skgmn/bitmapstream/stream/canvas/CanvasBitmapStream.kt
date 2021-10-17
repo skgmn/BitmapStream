@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.canvas
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import kotlin.math.roundToInt
 
 internal class CanvasBitmapStream(
@@ -18,10 +18,9 @@ internal class CanvasBitmapStream(
     private val key: Any? = null,
     private val draw: DrawScope.() -> Unit
 ) : BitmapStream() {
-    override val metadata = object : BitmapMetadata {
+    override val size = object : BitmapSize {
         override val width get() = exactWidth.roundToInt()
         override val height get() = exactHeight.roundToInt()
-        override val mimeType get() = "image/bmp"
     }
 
     private val exactWidth by lazy(LazyThreadSafetyMode.NONE) {

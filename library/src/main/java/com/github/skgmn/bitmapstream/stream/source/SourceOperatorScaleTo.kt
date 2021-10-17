@@ -8,10 +8,10 @@ internal class SourceOperatorScaleTo(
     private val targetHeight: Double
 ) : SourceOperatorScaleBase(other) {
     override val scaleX by lazy(LazyThreadSafetyMode.NONE) {
-        (targetWidth / other.metadata.width).toFloat()
+        (targetWidth / other.size.width).toFloat()
     }
     override val scaleY by lazy(LazyThreadSafetyMode.NONE) {
-        (targetHeight / other.metadata.height).toFloat()
+        (targetHeight / other.size.height).toFloat()
     }
     override val exactWidth get() = targetWidth
     override val exactHeight get() = targetHeight

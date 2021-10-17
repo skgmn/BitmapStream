@@ -8,9 +8,9 @@ internal class ShapeBitmapStream(
     private val other: BitmapStream,
     private val shape: Shape
 ) : LazyBitmapStream() {
-    override val metadata get() = other.metadata
-    override val simulatedWidth get() = other.metadata.width.toDouble()
-    override val simulatedHeight get() = other.metadata.height.toDouble()
+    override val size get() = other.size
+    override val simulatedWidth get() = other.size.width.toDouble()
+    override val simulatedHeight get() = other.size.height.toDouble()
 
     override fun shape(shape: Shape): BitmapStream {
         return if (this.shape == shape) {
@@ -22,8 +22,8 @@ internal class ShapeBitmapStream(
 
     override fun buildStream(): BitmapStream {
         return CanvasBitmapStream(
-            canvasWidth = other.metadata.width,
-            canvasHeight = other.metadata.height,
+            canvasWidth = other.size.width,
+            canvasHeight = other.size.height,
             key = CanvasKey(other, shape)
         ) {
             draw(other, 0, 0, width, height, shape)

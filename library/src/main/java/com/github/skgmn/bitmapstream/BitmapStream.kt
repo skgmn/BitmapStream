@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import com.github.skgmn.bitmapstream.frame.FrameMethod
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import com.github.skgmn.bitmapstream.shape.Shape
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
@@ -28,7 +28,7 @@ import java.io.FileNotFoundException
 import java.net.URL
 
 abstract class BitmapStream {
-    abstract val metadata: BitmapMetadata
+    abstract val size: BitmapSize
 
     internal open val features = object : StreamFeatures {
         override val regional get() = false
@@ -73,7 +73,7 @@ abstract class BitmapStream {
             }
             val srcRect = Rect()
             val destRect = Rect()
-            frameMethod.computeBounds(metadata, frameWidth, frameHeight, srcRect, destRect)
+            frameMethod.computeBounds(size, frameWidth, frameHeight, srcRect, destRect)
             draw(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
         }.hardware(features.hardware).mutable(features.mutable)
     }

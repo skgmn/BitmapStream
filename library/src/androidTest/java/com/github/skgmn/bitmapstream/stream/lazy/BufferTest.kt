@@ -30,8 +30,8 @@ class BufferTest : BitmapTestBase() {
             .buffer()
             .region(100, 110, 100 + 120, 110 + 130)
             .scaleTo(140, 150)
-        assertEquals(140, decoder.metadata.width)
-        assertEquals(150, decoder.metadata.height)
+        assertEquals(140, decoder.size.width)
+        assertEquals(150, decoder.size.height)
 
         val actual = assertNotNull(decoder.decode())
         verify(exactly = 0) { sourceSpy.sessions.last().decodeBitmapRegion(any(), any()) }

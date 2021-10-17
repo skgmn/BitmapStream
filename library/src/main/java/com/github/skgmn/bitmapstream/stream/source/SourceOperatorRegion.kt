@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.source
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.ExtendedBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
 internal class SourceOperatorRegion(
@@ -13,18 +13,17 @@ internal class SourceOperatorRegion(
     private val right: Int,
     private val bottom: Int
 ) : SourceOperator(other) {
-    override val metadata = object : ExtendedBitmapMetadata {
+    override val size = object : BitmapMetadata {
         override val width: Int get() = right - left
         override val height: Int get() = bottom - top
-        override val mimeType: String? get() = other.metadata.mimeType
-        override val densityScale: Float get() = other.metadata.densityScale
+        override val densityScale: Float get() = other.size.densityScale
     }
 
     override val features = object : StreamFeatures by other.features {
         override val regional: Boolean
             get() {
                 return if (left == 0 && top == 0 &&
-                    right == other.metadata.width && bottom == other.metadata.height
+                    right == other.size.width && bottom == other.size.height
                 ) {
                     other.features.regional
                 } else {
@@ -34,7 +33,7 @@ internal class SourceOperatorRegion(
     }
 
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
-        return if (left == 0 && top == 0 && right == metadata.width && bottom == metadata.height) {
+        return if (left == 0 && top == 0 && right == size.width && bottom == size.height) {
             this
         } else {
             val newLeft = this.left + left
@@ -52,13 +51,13 @@ internal class SourceOperatorRegion(
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
         return other.buildInputParameters(features).apply {
             if (left == 0 && top == 0 &&
-                right == other.metadata.width && bottom == other.metadata.height
+                right == other.size.width && bottom == other.size.height
             ) {
                 return@apply
             }
 
-            val width = metadata.width
-            val height = metadata.height
+            val width = size.width
+            val height = size.height
 
             val left = (region?.left ?: 0) + (left / scaleX).roundToInt()
             val top = (region?.top ?: 0) + (top / scaleY).roundToInt()

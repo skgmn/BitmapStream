@@ -5,7 +5,7 @@ import com.github.skgmn.bitmapstream.BitmapStream
 internal abstract class TransformBitmapStream(
     protected val other: BitmapStream
 ) : BitmapStream() {
-    override val metadata get() = other.metadata
+    override val size get() = other.size
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
         return replaceUpstream(other.scaleTo(width, height))

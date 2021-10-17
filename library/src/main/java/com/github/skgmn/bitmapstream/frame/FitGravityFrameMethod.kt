@@ -1,21 +1,21 @@
 package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import com.github.skgmn.bitmapstream.util.AspectRatioCalculator
 
 internal class FitGravityFrameMethod(
     private val gravity: FitGravity
 ) : FrameMethod {
     override fun computeBounds(
-        metadata: BitmapMetadata,
+        size: BitmapSize,
         frameWidth: Int,
         frameHeight: Int,
         outSrc: Rect,
         outDest: Rect
     ) {
-        val width = metadata.width
-        val height = metadata.height
+        val width = size.width
+        val height = size.height
         outSrc.set(0, 0, width, height)
         val targetWidth: Int
         var targetHeight: Int = AspectRatioCalculator.getHeight(width, height, frameWidth)

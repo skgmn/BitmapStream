@@ -1,17 +1,17 @@
 package com.github.skgmn.bitmapstream.frame
 
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 
 internal class FitXYFrameMethod : FrameMethod {
     override fun computeBounds(
-        metadata: BitmapMetadata,
+        size: BitmapSize,
         frameWidth: Int,
         frameHeight: Int,
         outSrc: Rect,
         outDest: Rect
     ) {
-        outSrc.set(0, 0, metadata.width, metadata.height)
+        outSrc.set(0, 0, size.width, size.height)
         outDest.set(0, 0, frameWidth, frameHeight)
     }
 }

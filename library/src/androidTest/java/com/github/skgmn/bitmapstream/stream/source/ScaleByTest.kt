@@ -30,8 +30,8 @@ class ScaleByTest : BitmapTestBase() {
         )
         val decoder = BitmapFactoryBitmapStream(source)
             .scaleBy(0.3f, 0.3f)
-        assertEquals(decoder.metadata.width, byFactory.width)
-        assertEquals(decoder.metadata.height, byFactory.height)
+        assertEquals(decoder.size.width, byFactory.width)
+        assertEquals(decoder.size.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)

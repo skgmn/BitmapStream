@@ -20,8 +20,8 @@ class ScaleHeightTest : BitmapTestBase() {
         val source = ResourceBitmapSource(appContext.resources, R.drawable.nodpi_image)
         val decoder = BitmapFactoryBitmapStream(source)
             .scaleHeight(240)
-        assertEquals(decoder.metadata.width, byFactory.width)
-        assertEquals(decoder.metadata.height, byFactory.height)
+        assertEquals(decoder.size.width, byFactory.width)
+        assertEquals(decoder.size.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)

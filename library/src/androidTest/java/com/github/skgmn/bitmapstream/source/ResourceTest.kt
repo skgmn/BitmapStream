@@ -33,14 +33,14 @@ class ResourceTest : BitmapTestBase() {
 
             val stream = BitmapStream.fromResource(res, id)
             assertEquals(
-                "resId=$idName, expected width=${expected.width}, metadata width=${stream.metadata.width}",
+                "resId=$idName, expected width=${expected.width}, metadata width=${stream.size.width}",
                 expected.width,
-                stream.metadata.width
+                stream.size.width
             )
             assertEquals(
-                "resId=$idName, expected height=${expected.height}, metadata height=${stream.metadata.height}",
+                "resId=$idName, expected height=${expected.height}, metadata height=${stream.size.height}",
                 expected.height,
-                stream.metadata.height
+                stream.size.height
             )
 
             val actual = assertNotNull(stream.decode())
@@ -66,8 +66,8 @@ class ResourceTest : BitmapTestBase() {
 
             val stream = BitmapStream.fromResource(res, id)
                 .region(left, top, right, bottom)
-            assertEquals(expected.width, stream.metadata.width)
-            assertEquals(expected.height, stream.metadata.height)
+            assertEquals(expected.width, stream.size.width)
+            assertEquals(expected.height, stream.size.height)
 
             val actual = assertNotNull(stream.decode())
             assertEquals(expected.density, actual.density)

@@ -102,8 +102,8 @@ internal class BitmapDrawer(
         val unscaledDestBounds = unscaleBounds(Rect(finalBounds))
 
         val p = paint?.let { Paint(it) }
-        val scaleX = (destRight - destLeft).toFloat() / stream.metadata.width
-        val scaleY = (destBottom - destTop).toFloat() / stream.metadata.height
+        val scaleX = (destRight - destLeft).toFloat() / stream.size.width
+        val scaleY = (destBottom - destTop).toFloat() / stream.size.height
         val left = ((unscaledDestBounds.left - destLeft) / scaleX).roundToInt()
         val top = ((unscaledDestBounds.top - destTop) / scaleY).roundToInt()
         val right = ((unscaledDestBounds.right - destLeft) / scaleX).roundToInt()
@@ -144,8 +144,8 @@ internal class BitmapDrawer(
         val finalBounds = Rect(tempRect)
         val unscaledDestBounds = unscaleBounds(Rect(finalBounds))
 
-        val scaleX = (destRight - destLeft).toFloat() / stream.metadata.width
-        val scaleY = (destBottom - destTop).toFloat() / stream.metadata.height
+        val scaleX = (destRight - destLeft).toFloat() / stream.size.width
+        val scaleY = (destBottom - destTop).toFloat() / stream.size.height
         val left = ((unscaledDestBounds.left - destLeft) / scaleX).roundToInt()
         val top = ((unscaledDestBounds.top - destTop) / scaleY).roundToInt()
         val right = ((unscaledDestBounds.right - destLeft) / scaleX).roundToInt()

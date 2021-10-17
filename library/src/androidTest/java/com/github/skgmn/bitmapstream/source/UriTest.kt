@@ -50,14 +50,14 @@ class UriTest : BitmapTestBase() {
 
             val stream = BitmapStream.fromUri(appContext, uri)
             Assert.assertEquals(
-                "uri=$uri, expected width=${expected.width}, metadata width=${stream.metadata.width}",
+                "uri=$uri, expected width=${expected.width}, metadata width=${stream.size.width}",
                 expected.width,
-                stream.metadata.width
+                stream.size.width
             )
             Assert.assertEquals(
-                "uri=$uri, expected height=${expected.height}, metadata height=${stream.metadata.height}",
+                "uri=$uri, expected height=${expected.height}, metadata height=${stream.size.height}",
                 expected.height,
-                stream.metadata.height
+                stream.size.height
             )
 
             val actual = assertNotNull(stream.decode())
@@ -83,8 +83,8 @@ class UriTest : BitmapTestBase() {
 
             val stream = BitmapStream.fromUri(appContext, uri)
                 .region(left, top, right, bottom)
-            Assert.assertEquals(expected.width, stream.metadata.width)
-            Assert.assertEquals(expected.height, stream.metadata.height)
+            Assert.assertEquals(expected.width, stream.size.width)
+            Assert.assertEquals(expected.height, stream.size.height)
 
             val actual = assertNotNull(stream.decode())
             Assert.assertEquals(expected.density, actual.density)

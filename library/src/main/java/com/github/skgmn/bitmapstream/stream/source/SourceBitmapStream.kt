@@ -3,13 +3,13 @@ package com.github.skgmn.bitmapstream.stream.source
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.ExtendedBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 
 internal abstract class SourceBitmapStream : BitmapStream() {
-    abstract override val metadata: ExtendedBitmapMetadata
+    abstract override val size: BitmapMetadata
 
-    internal open val exactWidth: Double get() = metadata.width.toDouble()
-    internal open val exactHeight: Double get() = metadata.height.toDouble()
+    internal open val exactWidth: Double get() = size.width.toDouble()
+    internal open val exactHeight: Double get() = size.height.toDouble()
 
     internal abstract fun buildInputParameters(features: StreamFeatures): InputParameters
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?

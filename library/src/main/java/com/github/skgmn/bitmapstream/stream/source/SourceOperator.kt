@@ -6,7 +6,7 @@ import com.github.skgmn.bitmapstream.StreamFeatures
 internal abstract class SourceOperator(
     protected val other: SourceBitmapStream
 ) : SourceBitmapStream() {
-    override val metadata get() = other.metadata
+    override val size get() = other.size
     override val features get() = other.features
 
     protected abstract fun replaceUpstream(new: SourceBitmapStream): SourceBitmapStream

@@ -40,9 +40,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
         )
         val decoder = BitmapFactoryBitmapStream(source)
 
-        assertEquals(decoder.metadata.width, byFactory.width)
-        assertEquals(decoder.metadata.height, byFactory.height)
-        assertEquals(decoder.metadata.mimeType, "image/jpeg")
+        assertEquals(decoder.size.width, byFactory.width)
+        assertEquals(decoder.size.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)
@@ -112,9 +111,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
             data.size
         )
         val decoder = BitmapFactoryBitmapStream(source)
-        assertEquals(decoder.metadata.width, byFactoryFromByteArray.width)
-        assertEquals(decoder.metadata.height, byFactoryFromByteArray.height)
-        assertEquals(decoder.metadata.mimeType, "image/png")
+        assertEquals(decoder.size.width, byFactoryFromByteArray.width)
+        assertEquals(decoder.size.height, byFactoryFromByteArray.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactoryFromByteArray)
@@ -151,9 +149,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
 
         val source = FileBitmapSource(file)
         val decoder = BitmapFactoryBitmapStream(source)
-        assertEquals(decoder.metadata.width, byFactoryFromFile.width)
-        assertEquals(decoder.metadata.height, byFactoryFromFile.height)
-        assertEquals(decoder.metadata.mimeType, "image/png")
+        assertEquals(decoder.size.width, byFactoryFromFile.width)
+        assertEquals(decoder.size.height, byFactoryFromFile.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactoryFromFile)
@@ -183,9 +180,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
         }
         val decoder = BitmapFactoryBitmapStream(source)
 
-        assertEquals(decoder.metadata.width, byFactory.width)
-        assertEquals(decoder.metadata.height, byFactory.height)
-        assertEquals(decoder.metadata.mimeType, "image/jpeg")
+        assertEquals(decoder.size.width, byFactory.width)
+        assertEquals(decoder.size.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)
@@ -202,9 +198,8 @@ class BitmapFactoryBitmapStreamTest : BitmapTestBase() {
         )
         val decoder = BitmapFactoryBitmapStream(source)
 
-        assertEquals(decoder.metadata.width, byFactory.width)
-        assertEquals(decoder.metadata.height, byFactory.height)
-        assertEquals(decoder.metadata.mimeType, "image/jpeg")
+        assertEquals(decoder.size.width, byFactory.width)
+        assertEquals(decoder.size.height, byFactory.height)
 
         val byDecoder = assertNotNull(decoder.decode())
         assertSimilar(byDecoder, byFactory)

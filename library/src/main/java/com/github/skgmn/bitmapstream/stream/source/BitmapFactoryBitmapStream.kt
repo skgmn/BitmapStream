@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.source
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
-import com.github.skgmn.bitmapstream.metadata.ExtendedBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.SessionBitmapMetadata
 import com.github.skgmn.bitmapstream.source.BitmapSource
@@ -18,7 +18,7 @@ internal class BitmapFactoryBitmapStream(
     private val currentSession = AtomicReference<DecodeSession?>()
 
     private val statefulMetadata =
-        object : AtomicReference<ExtendedBitmapMetadata>(), ExtendedBitmapMetadata {
+        object : AtomicReference<BitmapMetadata>(), BitmapMetadata {
             init {
                 set(LazyBitmapMetadata { lazy ->
                     SessionBitmapMetadata(peekSession()).also {
@@ -29,11 +29,10 @@ internal class BitmapFactoryBitmapStream(
 
             override val width: Int get() = get().width
             override val height: Int get() = get().height
-            override val mimeType: String? get() = get().mimeType
             override val densityScale: Float get() = get().densityScale
         }
 
-    override val metadata: ExtendedBitmapMetadata get() = statefulMetadata
+    override val size: BitmapMetadata get() = statefulMetadata
 
     private fun peekSession(): DecodeSession {
         while (true) {
@@ -52,7 +51,7 @@ internal class BitmapFactoryBitmapStream(
     }
 
     override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return source.generateInputParameters(features, metadata)
+        return source.generateInputParameters(features, size)
     }
 
     override fun decode(inputParameters: InputParameters): Bitmap? {
@@ -63,7 +62,7 @@ internal class BitmapFactoryBitmapStream(
 
         val bitmap = if (region == null ||
             // compare dimensions first to ensure it's been decoded first on regional decoding
-            region.right == metadata.width && region.bottom == metadata.height &&
+            region.right == size.width && region.bottom == size.height &&
             region.left == 0 && region.top == 0
         ) {
             session.decodeBitmap(params.options).also {

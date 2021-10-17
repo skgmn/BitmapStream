@@ -5,7 +5,7 @@ import kotlin.math.roundToInt
 
 internal open class DecodedBitmapMetadata(
     options: BitmapFactory.Options
-) : ExtendedBitmapMetadata {
+) : BitmapMetadata {
     private val scaleFactor =
         if (options.inScaled && options.inDensity != 0 && options.inTargetDensity != 0) {
             options.inTargetDensity.toFloat() / options.inDensity
@@ -15,6 +15,5 @@ internal open class DecodedBitmapMetadata(
 
     override val width = (options.outWidth * scaleFactor).roundToInt()
     override val height = (options.outHeight * scaleFactor).roundToInt()
-    override val mimeType: String? = options.outMimeType
     override val densityScale get() = scaleFactor
 }

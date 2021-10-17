@@ -23,8 +23,8 @@ class InputStreamFactoryTest : BitmapTestBase() {
         })
 
         val stream = BitmapFactoryBitmapStream(sourceSpy.source)
-        val width = stream.metadata.width
-        val height = stream.metadata.height
+        val width = stream.size.width
+        val height = stream.size.height
 
         assertEquals(1, sourceSpy.sessions.size)
         verify(exactly = 1) {

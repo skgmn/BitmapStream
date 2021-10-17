@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.ExtendedBitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.stream.source.InputParameters
 
 internal class ResourceBitmapSource(
@@ -28,7 +28,7 @@ internal class ResourceBitmapSource(
 
     override fun generateInputParameters(
         features: StreamFeatures,
-        metadata: ExtendedBitmapMetadata
+        metadata: BitmapMetadata
     ): InputParameters {
         return if (features.regional) {
             val densityScale = metadata.densityScale
