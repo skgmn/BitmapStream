@@ -1,6 +1,9 @@
 package com.github.skgmn.bitmapstream.stream.canvas
 
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import com.github.skgmn.bitmapstream.BitmapStream
 import kotlin.math.roundToInt
@@ -38,14 +41,14 @@ internal class BitmapDrawer(
         destRight: Int,
         destBottom: Int
     ) {
-        val srcWidth = d.intrinsicWidth
-        val srcHeight = d.intrinsicHeight
-        if (srcWidth <= 0 || srcHeight <= 0) return
+        val drawableWidth = d.intrinsicWidth
+        val drawableHeight = d.intrinsicHeight
+        if (drawableWidth <= 0 || drawableHeight <= 0) return
 
         if (srcLeft == 0 &&
             srcTop == 0 &&
-            srcRight == srcWidth &&
-            srcBottom == srcHeight
+            srcRight == drawableWidth &&
+            srcBottom == drawableHeight
         ) {
             draw(d, destLeft, destTop, destRight, destBottom)
             return
@@ -62,8 +65,8 @@ internal class BitmapDrawer(
         val scaleY = (destBottom - destTop).toFloat() / (srcBottom - srcTop)
         val left = -(srcLeft * scaleX).roundToInt()
         val top = -(srcTop * scaleY).roundToInt()
-        val right = (left + srcWidth * scaleX).roundToInt()
-        val bottom = (top + srcHeight * scaleY).roundToInt()
+        val right = (left + drawableWidth * scaleX).roundToInt()
+        val bottom = (top + drawableHeight * scaleY).roundToInt()
         records += RecordEntry(visibleBounds) { canvas, _ ->
             d.setBounds(left, top, right, bottom)
             d.draw(canvas)
@@ -129,6 +132,62 @@ internal class BitmapDrawer(
         )
     }
 
+    override fun draw(
+        bitmap: Bitmap,
+        destLeft: Int,
+        destTop: Int,
+        destRight: Int,
+        destBottom: Int,
+        paint: Paint?
+    ) {
+        tempRect.set(destLeft, destTop, destRight, destBottom)
+        if (!getFinalBounds(tempRect)) return
+
+        val finalBounds = Rect(tempRect)
+        if (!bitmap.hasAlpha()) {
+            removeRedundantRecords(finalBounds)
+        }
+        records += RecordEntry(finalBounds) { canvas, _ ->
+            tempRect.set(destLeft, destTop, destRight, destBottom)
+            canvas.drawBitmap(bitmap, null, tempRect, paint)
+        }
+    }
+
+    override fun draw(
+        bitmap: Bitmap,
+        srcLeft: Int,
+        srcTop: Int,
+        srcRight: Int,
+        srcBottom: Int,
+        destLeft: Int,
+        destTop: Int,
+        destRight: Int,
+        destBottom: Int,
+        paint: Paint?
+    ) {
+        if (srcLeft == 0 &&
+            srcTop == 0 &&
+            srcRight == bitmap.width &&
+            srcBottom == bitmap.height
+        ) {
+            draw(bitmap, destLeft, destTop, destRight, destBottom)
+            return
+        }
+
+        tempRect.set(destLeft, destTop, destRight, destBottom)
+        if (!getFinalBounds(tempRect)) return
+
+        val finalBounds = Rect(tempRect)
+        if (!bitmap.hasAlpha()) {
+            removeRedundantRecords(finalBounds)
+        }
+        records += RecordEntry(finalBounds) { canvas, _ ->
+            tempRect.set(srcLeft, srcTop, srcRight, srcBottom)
+            val destRect = Rect(destLeft, destTop, destRight, destBottom)
+            canvas.drawBitmap(bitmap, tempRect, destRect, paint)
+        }
+    }
+
     private fun getFinalBounds(bounds: Rect): Boolean {
         bounds.left = (bounds.left * scaleX).roundToInt()
         bounds.top = (bounds.top * scaleY).roundToInt()
@@ -179,14 +238,5 @@ internal class BitmapDrawer(
         records.clear()
 
         return  bitmap
-    }
-
-    private fun Rect.set(rectF: RectF) {
-        set(
-            rectF.left.roundToInt(),
-            rectF.top.roundToInt(),
-            rectF.right.roundToInt(),
-            rectF.bottom.roundToInt()
-        )
     }
 }

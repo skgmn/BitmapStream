@@ -1,5 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.canvas
 
+import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
@@ -48,5 +49,43 @@ interface DrawScope {
         stream: BitmapStream,
         destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
         paint: Paint?
+    )
+
+    fun draw(bitmap: Bitmap, paint: Paint? = null) {
+        draw(bitmap, 0, 0, width, height, paint)
+    }
+
+    fun draw(bitmap: Bitmap, left: Int, top: Int, paint: Paint? = null) {
+        draw(bitmap, left, top, left + width, top + height, paint)
+    }
+
+    fun draw(bitmap: Bitmap, srcBounds: Rect?, destBounds: Rect, paint: Paint? = null) {
+        if (srcBounds == null) {
+            draw(
+                bitmap,
+                destBounds.left, destBounds.top, destBounds.right, destBounds.bottom,
+                paint
+            )
+        } else {
+            draw(
+                bitmap,
+                srcBounds.left, srcBounds.top, srcBounds.right, srcBounds.bottom,
+                destBounds.left, destBounds.top, destBounds.right, destBounds.bottom,
+                paint
+            )
+        }
+    }
+
+    fun draw(
+        bitmap: Bitmap,
+        destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
+        paint: Paint? = null
+    )
+
+    fun draw(
+        bitmap: Bitmap,
+        srcLeft: Int, srcTop: Int, srcRight: Int, srcBottom: Int,
+        destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
+        paint: Paint? = null
     )
 }

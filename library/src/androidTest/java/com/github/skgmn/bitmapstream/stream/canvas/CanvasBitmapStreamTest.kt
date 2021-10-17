@@ -161,4 +161,23 @@ class CanvasBitmapStreamTest : BitmapTestBase() {
 
         assertSimilar(expected, actual)
     }
+
+    @Test
+    fun overflowToRightBottomDrawBitmap() {
+        val res = appContext.resources
+        val expected = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888)
+        val imageBitmap = BitmapFactory.decodeResource(res, R.drawable.nodpi_image)
+        Canvas(expected).run {
+            drawColor(Color.BLACK)
+            drawBitmap(imageBitmap, 210f, 160f, null)
+        }
+
+        val canvas = CanvasBitmapStream(400, 300) {
+            draw(ColorDrawable(Color.BLACK))
+            draw(imageBitmap, 210, 160, null)
+        }
+        val actual = assertNotNull(canvas.decode())
+
+        assertSimilar(expected, actual)
+    }
 }

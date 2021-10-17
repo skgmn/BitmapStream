@@ -14,6 +14,7 @@ import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
+import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.lazy.BufferBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
@@ -222,6 +223,21 @@ abstract class BitmapStream {
                 }
                 else -> throw IllegalArgumentException("Unsupported uri: $uri")
             }
+        }
+
+        @JvmStatic
+        fun draw(
+            canvasWidth: Int,
+            canvasHeight: Int,
+            key: Any? = null,
+            draw: DrawScope.() -> Unit
+        ): BitmapStream {
+            return CanvasBitmapStream(
+                canvasWidth = canvasWidth,
+                canvasHeight = canvasHeight,
+                key = key,
+                draw = draw
+            )
         }
     }
 }

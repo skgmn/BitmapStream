@@ -152,6 +152,7 @@ internal class CanvasBitmapStream(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CanvasBitmapStream) return false
+        if (key == null) return false
 
         if (canvasWidth != other.canvasWidth) return false
         if (canvasHeight != other.canvasHeight) return false
@@ -167,6 +168,8 @@ internal class CanvasBitmapStream(
     }
 
     override fun hashCode(): Int {
+        if (key == null) return super.hashCode()
+
         var result = canvasWidth
         result = 31 * result + canvasHeight
         result = 31 * result + regionLeft
@@ -175,7 +178,7 @@ internal class CanvasBitmapStream(
         result = 31 * result + regionBottom
         result = 31 * result + scaleX.hashCode()
         result = 31 * result + scaleY.hashCode()
-        result = 31 * result + (key?.hashCode() ?: 0)
+        result = 31 * result + key.hashCode()
         return result
     }
 }
