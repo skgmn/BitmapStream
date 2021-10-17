@@ -8,6 +8,7 @@ import androidx.annotation.CallSuper
 import androidx.test.core.app.ApplicationProvider
 import com.github.skgmn.bitmapstream.source.BitmapSource
 import com.github.skgmn.bitmapstream.source.DecodeSession
+import com.github.skgmn.bitmapstream.test.R
 import io.mockk.every
 import io.mockk.spyk
 import org.junit.Assert
@@ -18,6 +19,15 @@ import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 
 abstract class BitmapTestBase {
+    private val resIds = arrayOf(
+        R.drawable.nodpi_image,
+        R.drawable.mdpi_image,
+        R.drawable.hdpi_image,
+        R.drawable.xhdpi_image,
+        R.drawable.xxhdpi_image,
+        R.drawable.xxxhdpi_image
+    )
+
     protected val appContext: Context by lazy {
         ApplicationProvider.getApplicationContext()
     }
@@ -26,6 +36,10 @@ abstract class BitmapTestBase {
     @Before
     open fun setUp() {
         System.loadLibrary("opencv_java4")
+    }
+
+    protected fun allResources(block: (Int) -> Unit) {
+        resIds.forEach(block)
     }
 
     protected fun <T : Any> assertNotNull(o: T?): T {

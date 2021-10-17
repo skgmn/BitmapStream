@@ -12,11 +12,13 @@ import android.net.Uri
 import androidx.annotation.DrawableRes
 import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.shape.Shape
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
 import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.lazy.BufferBitmapStream
+import com.github.skgmn.bitmapstream.stream.lazy.ShapeBitmapStream
 import com.github.skgmn.bitmapstream.stream.source.BitmapFactoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.transform.HardwareTransformBitmapStream
 import com.github.skgmn.bitmapstream.stream.transform.MutableTransformBitmapStream
@@ -84,30 +86,18 @@ abstract class BitmapStream {
         return BufferBitmapStream(this)
     }
 
+    open fun shape(shape: Shape): BitmapStream {
+        return ShapeBitmapStream(this, shape)
+    }
+
     internal open fun downsampleOnly(): BitmapStream {
         return this
     }
 
-    private class FrameKey(
-        private val stream: BitmapStream,
-        private val frameMethod: FrameMethod
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is FrameKey) return false
-
-            if (stream != other.stream) return false
-            if (frameMethod != other.frameMethod) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = stream.hashCode()
-            result = 31 * result + frameMethod.hashCode()
-            return result
-        }
-    }
+    private data class FrameKey(
+        val stream: BitmapStream,
+        val frameMethod: FrameMethod
+    )
 
     companion object {
         @JvmStatic

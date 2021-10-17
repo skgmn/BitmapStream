@@ -5,6 +5,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import com.github.skgmn.bitmapstream.BitmapStream
+import com.github.skgmn.bitmapstream.shape.Shape
 
 interface DrawScope {
     val width: Int
@@ -49,6 +50,20 @@ interface DrawScope {
         stream: BitmapStream,
         destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
         paint: Paint?
+    )
+
+    fun draw(stream: BitmapStream, destBounds: Rect, shape: Shape) {
+        draw(stream, destBounds.left, destBounds.top, destBounds.right, destBounds.bottom, shape)
+    }
+
+    fun draw(stream: BitmapStream, left: Int, top: Int, shape: Shape) {
+        draw(stream, left, top, left + stream.metadata.width, top + stream.metadata.height, shape)
+    }
+
+    fun draw(
+        stream: BitmapStream,
+        destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
+        shape: Shape
     )
 
     fun draw(bitmap: Bitmap, paint: Paint? = null) {
