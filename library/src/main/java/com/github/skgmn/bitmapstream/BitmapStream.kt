@@ -1,11 +1,14 @@
 package com.github.skgmn.bitmapstream
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
@@ -18,6 +21,8 @@ import com.github.skgmn.bitmapstream.stream.transform.HardwareTransformBitmapStr
 import com.github.skgmn.bitmapstream.stream.transform.MutableTransformBitmapStream
 import okio.source
 import java.io.File
+import java.io.FileNotFoundException
+import java.net.URL
 
 abstract class BitmapStream {
     abstract val metadata: BitmapMetadata
@@ -155,6 +160,67 @@ abstract class BitmapStream {
         fun fromDrawable(d: Drawable): BitmapStream {
             return CanvasBitmapStream(d.intrinsicWidth, d.intrinsicHeight) {
                 draw(d)
+            }
+        }
+
+        @JvmStatic
+        fun fromUri(context: Context, uriString: String): BitmapStream {
+            return fromUri(context, Uri.parse(uriString))
+        }
+
+        @JvmStatic
+        fun fromUri(context: Context, uri: Uri): BitmapStream {
+            return when (uri.scheme?.lowercase()) {
+                "http", "https" -> fromInputStreamFactory(uri) {
+                    URL(uri.toString()).openStream()
+                }
+                "file" -> {
+                    val pathSegments = requireNotNull(uri.pathSegments) {
+                        "No path: $uri"
+                    }
+                    require(pathSegments.size > 0) {
+                        "No path: $uri"
+                    }
+                    val path = requireNotNull(uri.path) {
+                        "No path: $uri"
+                    }
+                    if (pathSegments[0].equals("android_asset", true)) {
+                        val assetPath = pathSegments.drop(1).joinToString("/")
+                        fromAsset(context.assets, assetPath)
+                    } else {
+                        fromFile(File(path))
+                    }
+                }
+                "android.resource" -> {
+                    val authority = requireNotNull(uri.authority) { "No authority: $uri" }
+                    val r = try {
+                        context.packageManager.getResourcesForApplication(authority)
+                    } catch (ex: PackageManager.NameNotFoundException) {
+                        throw FileNotFoundException("No package found for authority: $uri")
+                    }
+                    val path = requireNotNull(uri.pathSegments) { "No path: $uri" }
+                    val id = when (path.size) {
+                        1 -> try {
+                            path[0].toInt()
+                        } catch (e: NumberFormatException) {
+                            throw IllegalArgumentException("Single path segment is not a resource ID: $uri")
+                        }
+                        2 -> r.getIdentifier(path[1], path[0], authority)
+                        else -> throw IllegalArgumentException("More than two path segments: $uri")
+                    }
+                    if (id == 0) {
+                        throw FileNotFoundException("No resource found for: $uri")
+                    }
+                    fromResource(r, id)
+                }
+                "content" -> {
+                    val contentResolver = context.contentResolver
+                    fromInputStreamFactory(uri) {
+                        contentResolver.openInputStream(uri)
+                            ?: throw FileNotFoundException("Can't open: $uri")
+                    }
+                }
+                else -> throw IllegalArgumentException("Unsupported uri: $uri")
             }
         }
     }
