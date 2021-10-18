@@ -1,9 +1,8 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
-import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.DecodedBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.LazyBitmapMetadata
 import com.github.skgmn.bitmapstream.metadata.SessionBitmapMetadata
 import com.github.skgmn.bitmapstream.source.BitmapSource
@@ -21,7 +20,7 @@ internal class BitmapFactoryBitmapStream(
         object : AtomicReference<BitmapMetadata>(), BitmapMetadata {
             init {
                 set(LazyBitmapMetadata { lazy ->
-                    SessionBitmapMetadata(peekSession()).also {
+                    SessionBitmapMetadata(attachSession()).also {
                         compareAndSet(lazy, it)
                     }
                 })
@@ -34,7 +33,7 @@ internal class BitmapFactoryBitmapStream(
 
     override val size: BitmapMetadata get() = statefulMetadata
 
-    private fun peekSession(): DecodeSession {
+    private fun attachSession(): DecodeSession {
         while (true) {
             val oldSession = currentSession.get()
             if (oldSession != null) return oldSession
@@ -46,18 +45,16 @@ internal class BitmapFactoryBitmapStream(
         }
     }
 
-    private fun getSession(): DecodeSession {
+    private fun detachSession(): DecodeSession {
         return currentSession.getAndSet(null) ?: source.createDecodeSession()
     }
 
-    override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return source.generateInputParameters(features, size)
+    override fun buildInputParameters(): InputParameters {
+        return source.generateInputParameters()
     }
 
     override fun decode(inputParameters: InputParameters): Bitmap? {
-        val session = getSession()
-
-        val params = inputParameters.buildDecodingParameters()
+        val params = inputParameters.buildDecodingParameters(statefulMetadata)
         val region = params.region
 
         val bitmap = if (region == null ||
@@ -65,7 +62,7 @@ internal class BitmapFactoryBitmapStream(
             region.right == size.width && region.bottom == size.height &&
             region.left == 0 && region.top == 0
         ) {
-            session.decodeBitmap(params.options).also {
+            detachSession().decodeBitmap(params.options).also {
                 val newMetadata = DecodedBitmapMetadata(params.options)
                 do {
                     val current = statefulMetadata.get()
@@ -73,7 +70,10 @@ internal class BitmapFactoryBitmapStream(
                 } while (!statefulMetadata.compareAndSet(current, newMetadata))
             }
         } else {
-            session.decodeBitmapRegion(region, params.options)
+            detachSession().decodeBitmapRegion(region, params.options)
+        }
+        if (params.options.inTargetDensity != 0) {
+            bitmap?.density = params.options.inTargetDensity
         }
         return bitmap
             ?.scaleBy(params.postScaleX, params.postScaleY)

@@ -1,11 +1,9 @@
 package com.github.skgmn.bitmapstream.stream.source
 
-import com.github.skgmn.bitmapstream.StreamFeatures
-
 @Suppress("EqualsOrHashCode")
 internal class SourceOperatorDownsampleOnly(other: SourceBitmapStream) : SourceOperator(other) {
-    override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return other.buildInputParameters(features).apply {
+    override fun buildInputParameters(): InputParameters {
+        return other.buildInputParameters().apply {
             downsampleOnly = true
         }
     }

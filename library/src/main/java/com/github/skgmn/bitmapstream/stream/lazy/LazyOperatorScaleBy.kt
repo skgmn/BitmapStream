@@ -14,6 +14,18 @@ internal class LazyOperatorScaleBy(
         other.simulatedHeight * scaleY
     }
 
+    override fun scaleTo(width: Int, height: Int): BitmapStream {
+        return other.scaleTo(width, height)
+    }
+
+    override fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream {
+        return if (scaleWidth == 1f && scaleHeight == 1f) {
+            this
+        } else {
+            other.scaleBy(scaleX * scaleWidth, scaleY * scaleHeight)
+        }
+    }
+
     override fun replaceUpstream(new: LazyBitmapStream): LazyBitmapStream {
         return LazyOperatorScaleBy(new, scaleX, scaleY)
     }

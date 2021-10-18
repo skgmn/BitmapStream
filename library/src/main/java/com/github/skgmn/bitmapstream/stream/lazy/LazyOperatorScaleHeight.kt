@@ -11,6 +11,10 @@ internal class LazyOperatorScaleHeight(
     }
     override val simulatedHeight get() = height.toDouble()
 
+    override fun scaleTo(width: Int, height: Int): BitmapStream {
+        return other.scaleTo(width, height)
+    }
+
     override fun scaleHeight(height: Int): BitmapStream {
         return if (this.height == height) {
             this

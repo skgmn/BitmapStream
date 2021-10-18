@@ -11,6 +11,10 @@ internal class LazyOperatorScaleWidth(
         width / other.simulatedWidth * other.simulatedHeight
     }
 
+    override fun scaleTo(width: Int, height: Int): BitmapStream {
+        return other.scaleTo(width, height)
+    }
+
     override fun scaleWidth(width: Int): BitmapStream {
         return if (this.width == width) {
             this

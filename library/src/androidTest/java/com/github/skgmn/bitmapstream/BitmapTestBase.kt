@@ -17,6 +17,7 @@ import org.junit.Before
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
+import kotlin.math.min
 
 abstract class BitmapTestBase {
     private val resIds = arrayOf(
@@ -39,7 +40,11 @@ abstract class BitmapTestBase {
     }
 
     protected fun allResources(block: (Int) -> Unit) {
-        resIds.forEach(block)
+        val res = appContext.resources
+        resIds.forEach {
+            System.out.println("Iterating resource $it: " + res.getResourceName(it))
+            block(it)
+        }
     }
 
     protected fun <T : Any> assertNotNull(o: T?): T {
@@ -92,6 +97,16 @@ abstract class BitmapTestBase {
             m.setScale(scaleX, scaleY)
             Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, m, true)
         }
+    }
+
+    protected fun scaleIn(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        val scale = min(
+            min(bitmap.width, maxWidth) / bitmap.width.toFloat(),
+            min(bitmap.height, maxHeight) / bitmap.height.toFloat()
+        )
+        val m = Matrix()
+        m.setScale(scale, scale)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, m, true)
     }
 
     private fun ensureSoftware(bitmap: Bitmap): Bitmap {

@@ -40,8 +40,12 @@ abstract class BitmapStream {
     abstract fun scaleWidth(width: Int): BitmapStream
     abstract fun scaleHeight(height: Int): BitmapStream
     abstract fun scaleBy(scaleWidth: Float, scaleHeight: Float): BitmapStream
-    abstract fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream
+    abstract fun scaleIn(
+        maxWidth: Int = Int.MAX_VALUE,
+        maxHeight: Int = Int.MAX_VALUE
+    ): BitmapStream
 
+    abstract fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream
     abstract fun decode(): Bitmap?
 
     fun region(bounds: Rect): BitmapStream {

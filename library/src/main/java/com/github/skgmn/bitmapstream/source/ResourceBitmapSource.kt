@@ -5,8 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
-import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import android.util.TypedValue
 import com.github.skgmn.bitmapstream.stream.source.InputParameters
 
 internal class ResourceBitmapSource(
@@ -26,19 +25,24 @@ internal class ResourceBitmapSource(
         }
     }
 
-    override fun generateInputParameters(
-        features: StreamFeatures,
-        metadata: BitmapMetadata
-    ): InputParameters {
-        return if (features.regional) {
-            val densityScale = metadata.densityScale
-            InputParameters(
-                scaleX = densityScale,
-                scaleY = densityScale
-            )
+    override fun generateInputParameters(): InputParameters {
+        val value = TypedValue()
+        res.getValue(id, value, false)
+
+        val displayDensity = res.displayMetrics.densityDpi
+        val densityScale = if (value.density == TypedValue.DENSITY_NONE ||
+            value.density == TypedValue.DENSITY_DEFAULT ||
+            displayDensity == 0
+        ) {
+            1f
         } else {
-            super.generateInputParameters(features, metadata)
+            displayDensity.toFloat() / value.density
         }
+        return InputParameters(
+            scaleX = densityScale,
+            scaleY = densityScale,
+            targetDensity = displayDensity
+        )
     }
 
     override fun equals(other: Any?): Boolean {

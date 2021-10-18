@@ -1,7 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
-import com.github.skgmn.bitmapstream.StreamFeatures
 
 internal abstract class SourceOperator(
     protected val other: SourceBitmapStream
@@ -28,8 +27,8 @@ internal abstract class SourceOperator(
         }
     }
 
-    override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return other.buildInputParameters(features)
+    override fun buildInputParameters(): InputParameters {
+        return other.buildInputParameters()
     }
 
     override fun decode(inputParameters: InputParameters): Bitmap? {

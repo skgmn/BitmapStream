@@ -1,6 +1,7 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
+import kotlin.math.min
 
 internal class SourceOperatorScaleTo(
     other: SourceBitmapStream,
@@ -47,6 +48,20 @@ internal class SourceOperatorScaleTo(
             this
         } else {
             SourceOperatorScaleTo(other, targetWidth * scaleWidth, targetHeight * scaleHeight)
+        }
+    }
+
+    override fun scaleIn(maxWidth: Int, maxHeight: Int): BitmapStream {
+        val scale = min(
+            min(targetWidth, maxWidth.toDouble()) / targetWidth,
+            min(targetHeight, maxHeight.toDouble()) / targetHeight
+        )
+        val newWidth = targetWidth * scale
+        val newHeight = targetHeight * scale
+        return if (newWidth == targetWidth && newHeight == targetHeight) {
+            this
+        } else {
+            SourceOperatorScaleTo(other, newWidth, newHeight)
         }
     }
 

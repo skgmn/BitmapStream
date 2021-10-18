@@ -29,6 +29,14 @@ internal abstract class LazyBitmapStream : BitmapStream() {
         }
     }
 
+    override fun scaleIn(maxWidth: Int, maxHeight: Int): BitmapStream {
+        return if (maxWidth == Int.MAX_VALUE && maxHeight == Int.MAX_VALUE) {
+            this
+        } else {
+            LazyOperatorScaleIn(this, maxWidth, maxHeight)
+        }
+    }
+
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
         return LazyOperatorRegion(this, left, top, right, bottom)
     }

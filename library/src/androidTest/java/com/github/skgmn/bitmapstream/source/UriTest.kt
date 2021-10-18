@@ -62,7 +62,7 @@ class UriTest : BitmapTestBase() {
 
             val actual = assertNotNull(stream.decode())
             Assert.assertEquals(
-                "uri=$uri, expected density=${expected.density}, metadata density=${actual.density}",
+                "uri=$uri, expected density=${expected.density}, actual density=${actual.density}",
                 expected.density,
                 actual.density
             )

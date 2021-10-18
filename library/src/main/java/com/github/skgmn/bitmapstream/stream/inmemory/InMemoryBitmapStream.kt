@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.metadata.BitmapSize
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal class InMemoryBitmapStream(
@@ -68,6 +69,26 @@ internal class InMemoryBitmapStream(
                 scaleX * scaleWidth,
                 scaleY * scaleHeight
             )
+        }
+    }
+
+    override fun scaleIn(maxWidth: Int, maxHeight: Int): BitmapStream {
+        return if (maxWidth == Int.MAX_VALUE && maxHeight == Int.MAX_VALUE) {
+            this
+        } else {
+            val scale = min(
+                min(exactWidth, maxWidth.toFloat()) / exactWidth,
+                min(exactHeight, maxHeight.toFloat()) / exactHeight
+            )
+            if (scale == 1f) {
+                this
+            } else {
+                InMemoryBitmapStream(
+                    bitmap, left, top, right, bottom,
+                    scaleX * scale,
+                    scaleY * scale
+                )
+            }
         }
     }
 

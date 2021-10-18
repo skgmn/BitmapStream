@@ -23,6 +23,10 @@ internal abstract class TransformBitmapStream(
         return replaceUpstream(other.scaleBy(scaleWidth, scaleHeight))
     }
 
+    override fun scaleIn(maxWidth: Int, maxHeight: Int): BitmapStream {
+        return replaceUpstream(other.scaleIn(maxWidth, maxHeight))
+    }
+
     override fun region(left: Int, top: Int, right: Int, bottom: Int): BitmapStream {
         return replaceUpstream(other.region(left, top, right, bottom))
     }

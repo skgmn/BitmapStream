@@ -23,8 +23,8 @@ internal class SourceOperatorHardware(
         }
     }
 
-    override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return other.buildInputParameters(features).apply {
+    override fun buildInputParameters(): InputParameters {
+        return other.buildInputParameters().apply {
             hardware = true
             mutable = null
         }

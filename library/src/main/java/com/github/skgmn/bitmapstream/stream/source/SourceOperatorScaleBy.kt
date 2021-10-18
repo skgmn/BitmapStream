@@ -14,13 +14,7 @@ internal class SourceOperatorScaleBy(
         return if (scaleWidth == 1f && scaleHeight == 1f) {
             this
         } else {
-            val sx = scaleX * scaleWidth
-            val sy = scaleY * scaleHeight
-            if (sx == 1f && sy == 1f) {
-                other
-            } else {
-                other.scaleBy(sx, sy)
-            }
+            other.scaleBy(scaleX * scaleWidth, scaleY * scaleHeight)
         }
     }
 

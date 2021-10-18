@@ -39,7 +39,7 @@ internal class SourceOperatorRegion(
         }
     }
 
-    override fun buildInputParameters(features: StreamFeatures): InputParameters {
+    override fun buildInputParameters(): InputParameters {
         val entireRegion = left == 0 && top == 0 &&
                 right == other.size.width && bottom == other.size.height
         val modifiedFeatures = if (entireRegion) {
@@ -47,7 +47,7 @@ internal class SourceOperatorRegion(
         } else {
             features
         }
-        return other.buildInputParameters(modifiedFeatures).apply {
+        return other.buildInputParameters().apply {
             if (entireRegion) return@apply
 
             val width = size.width

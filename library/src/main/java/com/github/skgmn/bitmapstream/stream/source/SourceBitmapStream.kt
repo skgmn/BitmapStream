@@ -2,7 +2,6 @@ package com.github.skgmn.bitmapstream.stream.source
 
 import android.graphics.Bitmap
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 
 internal abstract class SourceBitmapStream : BitmapStream() {
@@ -11,7 +10,7 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     internal open val exactWidth: Double get() = size.width.toDouble()
     internal open val exactHeight: Double get() = size.height.toDouble()
 
-    internal abstract fun buildInputParameters(features: StreamFeatures): InputParameters
+    internal abstract fun buildInputParameters(): InputParameters
     internal abstract fun decode(inputParameters: InputParameters): Bitmap?
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {
@@ -31,6 +30,14 @@ internal abstract class SourceBitmapStream : BitmapStream() {
             this
         } else {
             SourceOperatorScaleBy(this, scaleWidth, scaleHeight)
+        }
+    }
+
+    override fun scaleIn(maxWidth: Int, maxHeight: Int): BitmapStream {
+        return if (maxWidth == Int.MAX_VALUE && maxHeight == Int.MAX_VALUE) {
+            this
+        } else {
+            SourceOperatorScaleIn(this, maxWidth, maxHeight)
         }
     }
 
@@ -59,6 +66,6 @@ internal abstract class SourceBitmapStream : BitmapStream() {
     }
 
     override fun decode(): Bitmap? {
-        return decode(buildInputParameters(features))
+        return decode(buildInputParameters())
     }
 }

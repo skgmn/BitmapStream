@@ -1,7 +1,6 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.StreamFeatures
 import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
 import kotlin.math.roundToInt
 
@@ -21,8 +20,8 @@ internal abstract class SourceOperatorScaleBase(
         return other.scaleTo(width, height)
     }
 
-    override fun buildInputParameters(features: StreamFeatures): InputParameters {
-        return other.buildInputParameters(features).apply {
+    override fun buildInputParameters(): InputParameters {
+        return other.buildInputParameters().apply {
             scaleX *= this@SourceOperatorScaleBase.scaleX
             scaleY *= this@SourceOperatorScaleBase.scaleY
         }
