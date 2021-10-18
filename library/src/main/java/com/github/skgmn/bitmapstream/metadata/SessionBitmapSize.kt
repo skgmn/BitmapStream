@@ -3,9 +3,9 @@ package com.github.skgmn.bitmapstream.metadata
 import android.graphics.BitmapFactory
 import com.github.skgmn.bitmapstream.source.DecodeSession
 
-internal class SessionBitmapMetadata(
+internal class SessionBitmapSize(
     decodeSession: DecodeSession
-) : DecodedBitmapMetadata(decodeBounds(decodeSession)) {
+) : DecodedBitmapSize(decodeBounds(decodeSession)) {
     companion object {
         private fun decodeBounds(decodeSession: DecodeSession): BitmapFactory.Options {
             val options = BitmapFactory.Options()

@@ -1,7 +1,7 @@
 package com.github.skgmn.bitmapstream.stream.source
 
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import kotlin.math.roundToInt
 
 internal abstract class SourceOperatorScaleBase(
@@ -10,10 +10,9 @@ internal abstract class SourceOperatorScaleBase(
     abstract val scaleX: Float
     abstract val scaleY: Float
 
-    override val size = object : BitmapMetadata {
+    override val size = object : BitmapSize {
         override val width get() = exactWidth.roundToInt()
         override val height get() = exactHeight.roundToInt()
-        override val densityScale get() = other.size.densityScale
     }
 
     override fun scaleTo(width: Int, height: Int): BitmapStream {

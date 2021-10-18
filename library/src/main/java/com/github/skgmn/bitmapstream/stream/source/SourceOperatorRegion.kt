@@ -3,7 +3,7 @@ package com.github.skgmn.bitmapstream.stream.source
 import android.graphics.Rect
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.StreamFeatures
-import com.github.skgmn.bitmapstream.metadata.BitmapMetadata
+import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import kotlin.math.roundToInt
 
 internal class SourceOperatorRegion(
@@ -13,10 +13,9 @@ internal class SourceOperatorRegion(
     private val right: Int,
     private val bottom: Int
 ) : SourceOperator(other) {
-    override val size = object : BitmapMetadata {
+    override val size = object : BitmapSize {
         override val width: Int get() = right - left
         override val height: Int get() = bottom - top
-        override val densityScale: Float get() = other.size.densityScale
     }
 
     override val features = object : StreamFeatures by other.features {
@@ -40,14 +39,9 @@ internal class SourceOperatorRegion(
     }
 
     override fun buildInputParameters(): InputParameters {
-        val entireRegion = left == 0 && top == 0 &&
-                right == other.size.width && bottom == other.size.height
-        val modifiedFeatures = if (entireRegion) {
-            other.features
-        } else {
-            features
-        }
         return other.buildInputParameters().apply {
+            val entireRegion = left == 0 && top == 0 &&
+                    right == other.size.width && bottom == other.size.height
             if (entireRegion) return@apply
 
             val width = size.width
