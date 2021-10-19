@@ -1,11 +1,10 @@
 package com.github.skgmn.bitmapstream.stream.canvas
 
 import android.graphics.Bitmap
-import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.shape.Shape
 
 interface DrawScope {
     val width: Int
@@ -38,43 +37,29 @@ interface DrawScope {
         destLeft: Int, destTop: Int, destRight: Int, destBottom: Int
     )
 
-    fun draw(stream: BitmapStream, destBounds: Rect, paint: Paint?) {
+    fun draw(stream: BitmapStream, destBounds: Rect, paint: DrawPaint?) {
         draw(stream, destBounds.left, destBounds.top, destBounds.right, destBounds.bottom, paint)
     }
 
-    fun draw(stream: BitmapStream, left: Int, top: Int, paint: Paint?) {
+    fun draw(stream: BitmapStream, left: Int, top: Int, paint: DrawPaint?) {
         draw(stream, left, top, left + stream.size.width, top + stream.size.height, paint)
     }
 
     fun draw(
         stream: BitmapStream,
         destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
-        paint: Paint?
+        paint: DrawPaint?
     )
 
-    fun draw(stream: BitmapStream, destBounds: Rect, shape: Shape) {
-        draw(stream, destBounds.left, destBounds.top, destBounds.right, destBounds.bottom, shape)
-    }
-
-    fun draw(stream: BitmapStream, left: Int, top: Int, shape: Shape) {
-        draw(stream, left, top, left + stream.size.width, top + stream.size.height, shape)
-    }
-
-    fun draw(
-        stream: BitmapStream,
-        destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
-        shape: Shape
-    )
-
-    fun draw(bitmap: Bitmap, paint: Paint? = null) {
+    fun draw(bitmap: Bitmap, paint: DrawPaint? = null) {
         draw(bitmap, 0, 0, width, height, paint)
     }
 
-    fun draw(bitmap: Bitmap, left: Int, top: Int, paint: Paint? = null) {
+    fun draw(bitmap: Bitmap, left: Int, top: Int, paint: DrawPaint? = null) {
         draw(bitmap, left, top, left + width, top + height, paint)
     }
 
-    fun draw(bitmap: Bitmap, srcBounds: Rect?, destBounds: Rect, paint: Paint? = null) {
+    fun draw(bitmap: Bitmap, srcBounds: Rect?, destBounds: Rect, paint: DrawPaint? = null) {
         if (srcBounds == null) {
             draw(
                 bitmap,
@@ -94,13 +79,25 @@ interface DrawScope {
     fun draw(
         bitmap: Bitmap,
         destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
-        paint: Paint? = null
+        paint: DrawPaint? = null
     )
 
     fun draw(
         bitmap: Bitmap,
         srcLeft: Int, srcTop: Int, srcRight: Int, srcBottom: Int,
         destLeft: Int, destTop: Int, destRight: Int, destBottom: Int,
-        paint: Paint? = null
+        paint: DrawPaint? = null
+    )
+
+    fun drawOval(left: Int, top: Int, right: Int, bottom: Int, paint: DrawPaint)
+    fun drawPath(path: Path, paint: DrawPaint)
+    fun drawRoundRect(
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        rx: Float,
+        ry: Float,
+        paint: DrawPaint
     )
 }

@@ -3,7 +3,6 @@ package com.github.skgmn.bitmapstream.stream.canvas
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import com.github.skgmn.bitmapstream.BitmapStream
-import com.github.skgmn.bitmapstream.shape.Shape
 import kotlin.math.roundToInt
 
 @Suppress("UNCHECKED_CAST")
@@ -27,6 +26,7 @@ internal class BitmapDrawer(
         )
     }
     private val tempRect by lazy(LazyThreadSafetyMode.NONE) { Rect() }
+    private val tempRectF by lazy(LazyThreadSafetyMode.NONE) { RectF() }
 
     override fun draw(
         d: Drawable,
@@ -91,7 +91,7 @@ internal class BitmapDrawer(
         destTop: Int,
         destRight: Int,
         destBottom: Int,
-        paint: Paint?
+        paint: DrawPaint?
     ) {
         if (paint?.alpha == 0) return
 
@@ -101,7 +101,7 @@ internal class BitmapDrawer(
         val finalBounds = Rect(tempRect)
         val unscaledDestBounds = unscaleBounds(Rect(finalBounds))
 
-        val p = paint?.let { Paint(it) }
+        val p = paint?.let { DrawPaint(it) }
         val scaleX = (destRight - destLeft).toFloat() / stream.size.width
         val scaleY = (destBottom - destTop).toFloat() / stream.size.height
         val left = ((unscaledDestBounds.left - destLeft) / scaleX).roundToInt()
@@ -119,56 +119,13 @@ internal class BitmapDrawer(
                     .hardware(false)
                     .decode()
                     ?.also {
-                        if (!it.hasAlpha() && p?.alpha ?: 0xff == 0xff) {
+                        if (!it.hasAlpha() && p?.isOpaque() != false) {
                             removeRedundantRecords(finalBounds)
                         }
                     }
             },
             drawer = { canvas, bitmap ->
-                canvas.drawBitmap(bitmap, null, unscaledDestBounds, p)
-            }
-        )
-    }
-
-    override fun draw(
-        stream: BitmapStream,
-        destLeft: Int,
-        destTop: Int,
-        destRight: Int,
-        destBottom: Int,
-        shape: Shape
-    ) {
-        tempRect.set(destLeft, destTop, destRight, destBottom)
-        if (!getFinalBounds(tempRect)) return
-
-        val finalBounds = Rect(tempRect)
-        val unscaledDestBounds = unscaleBounds(Rect(finalBounds))
-
-        val scaleX = (destRight - destLeft).toFloat() / stream.size.width
-        val scaleY = (destBottom - destTop).toFloat() / stream.size.height
-        val left = ((unscaledDestBounds.left - destLeft) / scaleX).roundToInt()
-        val top = ((unscaledDestBounds.top - destTop) / scaleY).roundToInt()
-        val right = ((unscaledDestBounds.right - destLeft) / scaleX).roundToInt()
-        val bottom = ((unscaledDestBounds.bottom - destTop) / scaleY).roundToInt()
-        records += RecordEntry(
-            finalBounds,
-            deferred = lazy(LazyThreadSafetyMode.NONE) {
-                stream
-                    .region(left, top, right, bottom)
-                    .scaleTo(finalBounds.width(), finalBounds.height())
-                    .downsampleOnly()
-                    .mutable(null)
-                    .hardware(false)
-                    .decode()
-            },
-            drawer = { canvas, bitmap ->
-                val p = Paint(Paint.ANTI_ALIAS_FLAG)
-                p.color = Color.WHITE
-                p.style = Paint.Style.FILL
-                shape.draw(canvas, destLeft, destTop, destRight, destBottom, p)
-
-                p.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-                canvas.drawBitmap(bitmap, null, unscaledDestBounds, p)
+                canvas.drawBitmap(bitmap, null, unscaledDestBounds, p?.paint)
             }
         )
     }
@@ -179,7 +136,7 @@ internal class BitmapDrawer(
         destTop: Int,
         destRight: Int,
         destBottom: Int,
-        paint: Paint?
+        paint: DrawPaint?
     ) {
         tempRect.set(destLeft, destTop, destRight, destBottom)
         if (!getFinalBounds(tempRect)) return
@@ -188,10 +145,10 @@ internal class BitmapDrawer(
         if (!bitmap.hasAlpha()) {
             removeRedundantRecords(finalBounds)
         }
-        val p = paint?.let { Paint(it) }
+        val p = paint?.let { DrawPaint(it) }
         records += RecordEntry(finalBounds) { canvas, _ ->
             tempRect.set(destLeft, destTop, destRight, destBottom)
-            canvas.drawBitmap(bitmap, null, tempRect, p)
+            canvas.drawBitmap(bitmap, null, tempRect, p?.paint)
         }
     }
 
@@ -205,7 +162,7 @@ internal class BitmapDrawer(
         destTop: Int,
         destRight: Int,
         destBottom: Int,
-        paint: Paint?
+        paint: DrawPaint?
     ) {
         if (srcLeft == 0 &&
             srcTop == 0 &&
@@ -223,12 +180,63 @@ internal class BitmapDrawer(
         if (!bitmap.hasAlpha()) {
             removeRedundantRecords(finalBounds)
         }
-        val p = paint?.let { Paint(it) }
+        val p = paint?.let { DrawPaint(it) }
         records += RecordEntry(finalBounds) { canvas, _ ->
             tempRect.set(srcLeft, srcTop, srcRight, srcBottom)
             val destRect = Rect(destLeft, destTop, destRight, destBottom)
-            canvas.drawBitmap(bitmap, tempRect, destRect, p)
+            canvas.drawBitmap(bitmap, tempRect, destRect, p?.paint)
         }
+    }
+
+    override fun drawOval(left: Int, top: Int, right: Int, bottom: Int, paint: DrawPaint) {
+        tempRect.set(left, top, right, bottom)
+        if (!getFinalBounds(tempRect)) return
+        val finalBounds = Rect(tempRect)
+        val p = DrawPaint(paint)
+        records += RecordEntry(
+            bounds = finalBounds,
+            drawer = { canvas, _ ->
+                tempRectF.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+                canvas.drawOval(tempRectF, p.paint)
+            }
+        )
+    }
+
+    override fun drawPath(path: Path, paint: DrawPaint) {
+        path.computeBounds(tempRectF, true)
+        tempRect.set(tempRectF)
+        if (!getFinalBounds(tempRect)) return
+        val finalBounds = Rect(tempRect)
+        val path2 = Path(path)
+        val p = DrawPaint(paint)
+        records += RecordEntry(
+            bounds = finalBounds,
+            drawer = { canvas, _ ->
+                canvas.drawPath(path2, p.paint)
+            }
+        )
+    }
+
+    override fun drawRoundRect(
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        rx: Float,
+        ry: Float,
+        paint: DrawPaint
+    ) {
+        tempRect.set(left, top, right, bottom)
+        if (!getFinalBounds(tempRect)) return
+        val finalBounds = Rect(tempRect)
+        val p = DrawPaint(paint)
+        records += RecordEntry(
+            bounds = finalBounds,
+            drawer = { canvas, _ ->
+                tempRectF.set(left, top, right, bottom)
+                canvas.drawRoundRect(tempRectF, rx, ry, p.paint)
+            }
+        )
     }
 
     private fun getFinalBounds(bounds: Rect): Boolean {
@@ -251,6 +259,24 @@ internal class BitmapDrawer(
         records.removeAll {
             it.bounds != null && bounds.contains(it.bounds)
         }
+    }
+
+    private fun Rect.set(rectF: RectF) {
+        set(
+            rectF.left.roundToInt(),
+            rectF.top.roundToInt(),
+            rectF.right.roundToInt(),
+            rectF.bottom.roundToInt()
+        )
+    }
+
+    private fun RectF.set(left: Int, top: Int, right: Int, bottom: Int) {
+        set(
+            left.toFloat(),
+            top.toFloat(),
+            right.toFloat(),
+            bottom.toFloat()
+        )
     }
 
     internal fun makeBitmap(): Bitmap {

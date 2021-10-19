@@ -1,24 +1,16 @@
 package com.github.skgmn.bitmapstream.shape
 
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RectF
+import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
+import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 import kotlin.math.min
 
 internal class PercentRoundRectShape(
     private val percent: Float
 ) : Shape {
-    override fun draw(canvas: Canvas, left: Int, top: Int, right: Int, bottom: Int, paint: Paint) {
+    override fun DrawScope.draw(left: Int, top: Int, right: Int, bottom: Int, paint: DrawPaint) {
         val minSize = min(right - left, bottom - top)
         val radius = minSize * percent
-        canvas.drawRoundRect(
-            RectF(
-                left.toFloat(),
-                top.toFloat(),
-                right.toFloat(),
-                bottom.toFloat()
-            ), radius, radius, paint
-        )
+        drawRoundRect(left, top, right, bottom, radius, radius, paint)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -1,21 +1,13 @@
 package com.github.skgmn.bitmapstream.shape
 
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RectF
+import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
+import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 
 internal class RoundRectShape(
     private val radius: Float
 ) : Shape {
-    override fun draw(canvas: Canvas, left: Int, top: Int, right: Int, bottom: Int, paint: Paint) {
-        canvas.drawRoundRect(
-            RectF(
-                left.toFloat(),
-                top.toFloat(),
-                right.toFloat(),
-                bottom.toFloat()
-            ), radius, radius, paint
-        )
+    override fun DrawScope.draw(left: Int, top: Int, right: Int, bottom: Int, paint: DrawPaint) {
+        drawRoundRect(left, top, right, bottom, radius, radius, paint)
     }
 
     override fun equals(other: Any?): Boolean {

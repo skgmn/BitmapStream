@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -15,6 +14,7 @@ import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import com.github.skgmn.bitmapstream.shape.Shape
 import com.github.skgmn.bitmapstream.source.*
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
+import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
 import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 import com.github.skgmn.bitmapstream.stream.inmemory.InMemoryBitmapStream
 import com.github.skgmn.bitmapstream.stream.lazy.BufferBitmapStream
@@ -78,7 +78,7 @@ abstract class BitmapStream {
             val srcRect = Rect()
             val destRect = Rect()
             frameMethod.computeBounds(size, frameWidth, frameHeight, srcRect, destRect)
-            draw(region(srcRect), destRect, Paint(Paint.FILTER_BITMAP_FLAG))
+            draw(region(srcRect), destRect, DrawPaint(filterBitmap = true))
         }.hardware(features.hardware).mutable(features.mutable)
     }
 

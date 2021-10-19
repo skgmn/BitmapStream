@@ -32,7 +32,7 @@ internal class InputParameters(
 
         var postScaleX = if (downsampleOnly) 1f else sx
         var postScaleY = if (downsampleOnly) 1f else sy
-        if (sampleSize != 1 && postScaleX != 1f && postScaleY != 1f) {
+        if (sampleSize != 1 && (postScaleX != 1f || postScaleY != 1f)) {
             val w = size.width.toFloat()
             val h = size.height.toFloat()
             val downsampledWidth = (w / sampleSize).roundToInt()

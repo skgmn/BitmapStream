@@ -1,8 +1,12 @@
 package com.github.skgmn.bitmapstream.stream.lazy
 
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
 import com.github.skgmn.bitmapstream.BitmapStream
 import com.github.skgmn.bitmapstream.shape.Shape
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
+import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
 
 internal class ShapeBitmapStream(
     private val other: BitmapStream,
@@ -26,7 +30,13 @@ internal class ShapeBitmapStream(
             canvasHeight = other.size.height,
             key = CanvasKey(other, shape)
         ) {
-            draw(other, 0, 0, width, height, shape)
+            val p = DrawPaint(antialias = true)
+            p.color = Color.WHITE
+            p.style = Paint.Style.FILL
+            with(shape) { draw(0, 0, width, height, p) }
+
+            p.porterDuffMode = PorterDuff.Mode.SRC_IN
+            draw(other, 0, 0, width, height, p)
         }
     }
 

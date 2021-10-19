@@ -1,7 +1,8 @@
 package com.github.skgmn.bitmapstream.shape
 
-import android.graphics.Canvas
-import android.graphics.Paint
+import com.github.skgmn.bitmapstream.shape.PartialRoundRectShape.Companion.drawPartialRoundRect
+import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
+import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 import kotlin.math.min
 
 internal class PartialPercentRoundRectShape(
@@ -10,15 +11,14 @@ internal class PartialPercentRoundRectShape(
     private val bottomLeftPercent: Float,
     private val bottomRightPercent: Float
 ) : Shape {
-    override fun draw(canvas: Canvas, left: Int, top: Int, right: Int, bottom: Int, paint: Paint) {
+    override fun DrawScope.draw(left: Int, top: Int, right: Int, bottom: Int, paint: DrawPaint) {
         val minSize = min(right - left, bottom - top)
         val topLeftRadius = minSize * topLeftPercent
         val topRightRadius = minSize * topRightPercent
         val bottomLeftRadius = minSize * bottomLeftPercent
         val bottomRightRadius = minSize * bottomRightPercent
 
-        PartialRoundRectShape.drawPartialRoundRect(
-            canvas,
+        drawPartialRoundRect(
             left,
             top,
             right,

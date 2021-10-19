@@ -1,9 +1,9 @@
 package com.github.skgmn.bitmapstream.shape
 
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
+import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
 
 internal class PartialRoundRectShape(
     private val topLeftRadius: Float,
@@ -11,9 +11,8 @@ internal class PartialRoundRectShape(
     private val bottomLeftRadius: Float,
     private val bottomRightRadius: Float
 ) : Shape {
-    override fun draw(canvas: Canvas, left: Int, top: Int, right: Int, bottom: Int, paint: Paint) {
+    override fun DrawScope.draw(left: Int, top: Int, right: Int, bottom: Int, paint: DrawPaint) {
         drawPartialRoundRect(
-            canvas,
             left,
             top,
             right,
@@ -47,8 +46,7 @@ internal class PartialRoundRectShape(
     }
 
     companion object {
-        internal fun drawPartialRoundRect(
-            canvas: Canvas,
+        internal fun DrawScope.drawPartialRoundRect(
             left: Int,
             top: Int,
             right: Int,
@@ -57,7 +55,7 @@ internal class PartialRoundRectShape(
             topRightRadius: Float,
             bottomLeftRadius: Float,
             bottomRightRadius: Float,
-            paint: Paint
+            paint: DrawPaint
         ) {
             val rectF = RectF()
             val l = left.toFloat()
@@ -89,7 +87,7 @@ internal class PartialRoundRectShape(
 
             path.close()
 
-            canvas.drawPath(path, paint)
+            drawPath(path, paint)
         }
     }
 }
