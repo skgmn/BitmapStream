@@ -8,11 +8,13 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.util.TypedValue
 import androidx.annotation.DrawableRes
 import com.github.skgmn.bitmapstream.frame.FrameMethod
 import com.github.skgmn.bitmapstream.metadata.BitmapSize
 import com.github.skgmn.bitmapstream.shape.Shape
 import com.github.skgmn.bitmapstream.source.*
+import com.github.skgmn.bitmapstream.stream.NullBitmapStream
 import com.github.skgmn.bitmapstream.stream.canvas.CanvasBitmapStream
 import com.github.skgmn.bitmapstream.stream.canvas.DrawPaint
 import com.github.skgmn.bitmapstream.stream.canvas.DrawScope
@@ -130,8 +132,28 @@ abstract class BitmapStream {
         }
 
         @JvmStatic
+        fun fromResource(context: Context, @DrawableRes id: Int): BitmapStream {
+            val res = context.resources
+            val value = TypedValue()
+            res.getValue(id, value, true)
+            val path = value.string
+            return if (path?.endsWith(".xml") == true) {
+                context.getDrawable(id)?.let { fromDrawable(it) } ?: NullBitmapStream()
+            } else {
+                BitmapFactoryBitmapStream(ResourceBitmapSource(res, id, value))
+            }
+        }
+
+        @JvmStatic
         fun fromResource(res: Resources, @DrawableRes id: Int): BitmapStream {
-            return BitmapFactoryBitmapStream(ResourceBitmapSource(res, id))
+            val value = TypedValue()
+            res.getValue(id, value, true)
+            val path = value.string
+            return if (path?.endsWith(".xml") == true) {
+                res.getDrawable(id, null)?.let { fromDrawable(it) } ?: NullBitmapStream()
+            } else {
+                BitmapFactoryBitmapStream(ResourceBitmapSource(res, id, value))
+            }
         }
 
         @JvmStatic

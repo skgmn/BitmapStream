@@ -10,7 +10,8 @@ import com.github.skgmn.bitmapstream.stream.source.InputParameters
 
 internal class ResourceBitmapSource(
     private val res: Resources,
-    private val id: Int
+    private val id: Int,
+    private val value: TypedValue? = null
 ) : BitmapSource() {
     override fun createDecodeSession() = object : DecodeSession {
         override fun decodeBitmap(options: BitmapFactory.Options): Bitmap? {
@@ -26,9 +27,9 @@ internal class ResourceBitmapSource(
     }
 
     override fun generateInputParameters(): InputParameters {
-        val value = TypedValue()
-        res.getValue(id, value, false)
-
+        val value = value ?: TypedValue().also {
+            res.getValue(id, it, false)
+        }
         val displayDensity = res.displayMetrics.densityDpi
         val densityScale = if (value.density == TypedValue.DENSITY_NONE ||
             value.density == TypedValue.DENSITY_DEFAULT ||

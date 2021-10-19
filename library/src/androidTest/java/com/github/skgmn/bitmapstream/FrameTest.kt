@@ -23,8 +23,7 @@ class FrameTest : BitmapTestBase() {
             drawBitmap(source, null, Rect(0, 40, 200, 160), Paint(Paint.FILTER_BITMAP_FLAG))
         }
 
-        val sourceStream =
-            BitmapFactoryBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
+        val sourceStream = BitmapStream.fromResource(res, R.drawable.nodpi_image)
         val frameStream = sourceStream.frame(
             200,
             200,
@@ -46,8 +45,7 @@ class FrameTest : BitmapTestBase() {
             drawBitmap(source, null, Rect(0, 40, 200, 160), Paint(Paint.FILTER_BITMAP_FLAG))
         }
 
-        val sourceStream =
-            BitmapFactoryBitmapStream(ResourceBitmapSource(res, R.drawable.nodpi_image))
+        val sourceStream = BitmapStream.fromResource(res, R.drawable.nodpi_image)
                 .hardware(true)
         val frameStream = sourceStream.frame(
             200,
